@@ -1,20 +1,24 @@
 import shelve
 from random import randint
 from datetime import datetime
+from PyQt5 import QtCore
 
 PATH_TO_TASK_DB = '../project_data/database/tasks'
 PATH_TO_ANSWERS_DB = '../project_data/database/answers'
 PATH_TO_USERS_DB = '../project_data/users_database/users'
 possible_figures = ('Метафора', 'Эпитет', 'Повтор')
+colors_of_figures = (QtCore.Qt.red, QtCore.Qt.blue, QtCore.Qt.green)
 
 
 class TaskFigure:
     global possible_figures
 
-    def __init__(self, type, key_symbols, possible_symbols):
+    def __init__(self, type, key_symbols, key_symbols_text, possible_symbols, possible_symbols_text):
         self.type = type  # todo refactor as figure_type
         self.key_symbols = key_symbols
+        self.key_symbols_text = key_symbols_text  # для отображения при проверке и других обращениях
         self.possible_symbols = possible_symbols
+        self.possible_symbols_text = possible_symbols_text  # для отображения при проверке и других обращениях
 
     def __str__(self):  # отладочное
         return ('[TaskFigure: type - %s, key symbols - %s, possible symbols from %s to %s]'
@@ -23,9 +27,10 @@ class TaskFigure:
 
 
 class Task:
-    def __init__(self, name, text, figures_list):
+    def __init__(self, name, text, highlighted_text, figures_list):
         self.name = name
         self.text = text
+        self.highlighted_text = highlighted_text
         self.figuresList = figures_list
 
     def __str__(self):  # Отладочное
@@ -56,9 +61,10 @@ class User:
 
 
 class AnswerFigure:
-    def __init__(self, figure_type, symbols_range):
+    def __init__(self, figure_type, symbols_range, figure_text):
         self.figure_type = figure_type
         self.symbols_range = symbols_range
+        self.figure_text = figure_text  # для отображения при проверке и других обращениях
 
     def __str__(self):  # Отладочное
         return ('[TaskFigure: type - %s, symbols range from %s to %s]'
@@ -67,8 +73,8 @@ class AnswerFigure:
 
     def check_figure(self, task_figure):
         if task_figure.type == self.figure_type:  # Тип
-            if (task_figure.key_symbols[0] >= self.symbols_range[0] and  # Расположение в предл
-                    task_figure.key_symbols[-1] <= self.symbols_range[-1]):
+            if (min(task_figure.key_symbols) >= self.symbols_range[0] and  # todo отслеживать возможность проблем
+                    max(task_figure.key_symbols) <= self.symbols_range[-1]):
                 if (task_figure.possible_symbols[0] <= self.symbols_range[0] and
                         task_figure.possible_symbols[-1] >= self.symbols_range[-1]):
                     return True

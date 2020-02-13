@@ -29,6 +29,9 @@
          <pointsize>12</pointsize>
         </font>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(255, 0, 0);</string>
+       </property>
        <property name="text">
         <string>Метафора</string>
        </property>
@@ -47,6 +50,9 @@
          <pointsize>12</pointsize>
         </font>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(85, 85, 255);</string>
+       </property>
        <property name="text">
         <string>Эпитет</string>
        </property>
@@ -64,6 +70,9 @@
         <font>
          <pointsize>12</pointsize>
         </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(0, 170, 0);</string>
        </property>
        <property name="text">
         <string>Повтор</string>
@@ -105,18 +114,6 @@
       </spacer>
      </item>
     </layout>
-   </item>
-   <item row="0" column="0">
-    <widget class="QPlainTextEdit" name="task_text">
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
    </item>
    <item row="1" column="0">
     <widget class="QTextBrowser" name="figures_browser">
@@ -170,6 +167,13 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="0" column="0">
+    <widget class="QTextEdit" name="task_text">
+     <property name="textInteractionFlags">
+      <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

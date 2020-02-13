@@ -1,8 +1,8 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from answer_adding_window import Ui_answer_edit_window
 import sys, shelve
 
-from global_stuff import PATH_TO_TASK_DB, PATH_TO_ANSWERS_DB, possible_figures, Answer, AnswerFigure
+from global_stuff import PATH_TO_TASK_DB, PATH_TO_ANSWERS_DB, possible_figures, Answer, AnswerFigure, colors_of_figures
 
 
 class answer_adding_window(QtWidgets.QDialog):
@@ -17,7 +17,7 @@ class answer_adding_window(QtWidgets.QDialog):
 
         tasks_db = shelve.open(PATH_TO_TASK_DB)
         self.task_text = tasks_db[task_name].text
-        self.ui.task_text.setPlainText(self.task_text)
+        self.ui.task_text.setText(self.task_text)
         tasks_db.close()
         self.set_default_figure_fields()
 
@@ -37,13 +37,20 @@ class answer_adding_window(QtWidgets.QDialog):
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
         self.figure_symbol_range = [start, end-1]
+        self.figure_text = cursor.selectedText()
         print(end - start)
 
-        figure = AnswerFigure(self.figure_type, self.figure_symbol_range)
+        figure = AnswerFigure(figure_type=self.figure_type,
+                              symbols_range=self.figure_symbol_range,
+                              figure_text=self.figure_text)
         self.figures_list.append(figure)
-        self.figures_to_show += '%s || %s \n' % (possible_figures[self.figure_type], self.task_text[start: end])
+        self.figures_to_show += '%s || %s \n' % (possible_figures[self.figure_type], self.figure_text)
         self.ui.figures_browser.setText(self.figures_to_show)
         print(figure)
+
+        char_format = cursor.charFormat()
+        char_format.setBackground(colors_of_figures[self.figure_type])
+        cursor.setCharFormat(char_format)
 
         self.set_default_figure_fields()
 
@@ -59,8 +66,9 @@ class answer_adding_window(QtWidgets.QDialog):
 
     def set_default_figure_fields(self):
         self.figure_type = None
-        self.ui.label_chosen_figure_type.setText(self.user_id + ' ' + self.task_name)  # отладочное
+        # self.ui.label_chosen_figure_type.setText(self.user_id + ' ' + self.task_name)  # отладочное
         self.figure_symbol_range = []
+        self.figure_text = None
 
 
 if __name__ == '__main__':
