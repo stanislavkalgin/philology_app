@@ -10,6 +10,10 @@ class answer_adding_window(QtWidgets.QDialog):
         super().__init__(parent)
         self.ui = Ui_answer_edit_window()
         self.ui.setupUi(self)
+        for i in range(len(possible_figures)):
+            self.ui.figures_buttons_list.addItem(possible_figures[i])
+            self.ui.figures_buttons_list.item(i).setForeground(colors_of_figures[i])
+
         self.user_id = id
         self.task_name = task_name
         self.figures_to_show = ''
@@ -21,15 +25,12 @@ class answer_adding_window(QtWidgets.QDialog):
         tasks_db.close()
         self.set_default_figure_fields()
 
-        self.ui.button_metaphor.clicked.connect(self.set_figure_type)
-        self.ui.button_epithet.clicked.connect(self.set_figure_type)
-        self.ui.button_repeat.clicked.connect(self.set_figure_type)
+        self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
         self.ui.button_add_figure.clicked.connect(self.add_figure)
         self.ui.button_finish_task.clicked.connect(self.complete_task)
 
-    def set_figure_type(self):
-        sender = self.sender()
-        self.figure_type = possible_figures.index(sender.text())
+    def set_figure_type(self, item):
+        self.figure_type = possible_figures.index(item.text())
         self.ui.label_chosen_figure_type.setText(possible_figures[self.figure_type])
 
     def add_figure(self):

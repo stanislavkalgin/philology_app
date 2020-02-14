@@ -16,6 +16,10 @@ class AddTaskForm(QtWidgets.QDialog):
         super().__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        for i in range(len(possible_figures)):
+            self.ui.figures_buttons_list.addItem(possible_figures[i])
+            self.ui.figures_buttons_list.item(i).setForeground(colors_of_figures[i])
+
         # блок полей создаваемого задания
         self.possible_figures = possible_figures
         self.colors_of_figures = colors_of_figures
@@ -26,19 +30,17 @@ class AddTaskForm(QtWidgets.QDialog):
         # блок полей создаваемого оборота, все должно быть обнулено после каждого добавления оборота
         self.edited_figure_key_symbols = []
         self.edited_figure_possible_symbols = []
-        self.edited_figure_type = None
+        self.edited_figure_type_index = None
         self.edited_figure_key_symbols_text = ''
         self.edited_figure_possible_symbols_text = ''
-        self.edited_figure_type_to_show = None
+        self.edited_figure_type_text = None
         # функционал окна
         self.ui.button_accept_text.clicked.connect(self.accept_text)
         self.ui.button_add_key_words.clicked.connect(self.add_key_words)
         self.ui.button_add_possible_words.clicked.connect(self.add_possible_words)
-        self.ui.button_metaphor.clicked.connect(self.set_figure_type)
-        self.ui.button_epithet.clicked.connect(self.set_figure_type)
-        self.ui.button_repeats.clicked.connect(self.set_figure_type)
         self.ui.button_add_figure.clicked.connect(self.add_figure_to_list)
         self.ui.button_add_task.clicked.connect(self.add_task)
+        self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
 
     def accept_text(self):
         self.task_text = self.ui.task_text.toHtml()
@@ -54,7 +56,7 @@ class AddTaskForm(QtWidgets.QDialog):
         # print(sorted(self.edited_figure_key_symbols))
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
         char_format = cursor.charFormat()
-        char_format.setBackground(self.colors_of_figures[self.edited_figure_type])
+        char_format.setBackground(self.colors_of_figures[self.edited_figure_type_index])
         cursor.setCharFormat(char_format)
 
     def add_possible_words(self):  # todo переделать способ задания границ оборотов
@@ -66,14 +68,14 @@ class AddTaskForm(QtWidgets.QDialog):
         # print(sorted(self.edited_figure_possible_symbols))
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
 
-    def set_figure_type(self):
-        sender = self.sender()
-        self.edited_figure_type = self.possible_figures.index(sender.text())
-        self.edited_figure_type_to_show = self.possible_figures[self.edited_figure_type]
-        self.ui.figure_info_type.setText(self.edited_figure_type_to_show)
+    def set_figure_type(self, item):
+        self.edited_figure_type_text = item.text()
+        self.edited_figure_type_index = self.possible_figures.index(self.edited_figure_type_text)
+        self.edited_figure_type_text = self.possible_figures[self.edited_figure_type_index]
+        self.ui.figure_info_type.setText(self.edited_figure_type_text)
 
     def add_figure_to_list(self):
-        figure = TaskFigure(type=self.edited_figure_type,
+        figure = TaskFigure(type=self.edited_figure_type_index,
                             key_symbols=self.edited_figure_key_symbols,
                             key_symbols_text=self.edited_figure_key_symbols_text,
                             possible_symbols=self.edited_figure_possible_symbols,
@@ -82,10 +84,10 @@ class AddTaskForm(QtWidgets.QDialog):
         # Обнуление полей редактируемого оборота
         self.edited_figure_key_symbols = []
         self.edited_figure_possible_symbols = []
-        self.edited_figure_type = None
+        self.edited_figure_type_index = None
         self.edited_figure_key_symbols_text = ''
         self.edited_figure_possible_symbols_text = ''
-        self.edited_figure_type_to_show = None
+        self.edited_figure_type_text = None
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
         self.ui.figure_info_type.setText('Тип оборота')
