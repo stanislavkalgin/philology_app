@@ -1,9 +1,8 @@
 from PyQt5 import QtWidgets
 from entrance_form_teacher import Ui_entrance_form  # IDE зря ругается
 import sys
-import shelve
-from global_stuff import PATH_TO_USERS_DB, User
 from teacher import AddTaskForm, CheckAnswersForm
+import sql_stuff
 
 
 class entrance_window(QtWidgets.QDialog):
@@ -21,24 +20,18 @@ class entrance_window(QtWidgets.QDialog):
     def check_login_password(self):
         login = self.ui.login_input.text()
         password = self.ui.password_input.text()
-        user_db = shelve.open(PATH_TO_USERS_DB, 'r')
-        for i in user_db.keys():
-            if user_db[i].login == login:
-                user = user_db[i]
-                user_db.close()
-                break
-        else:
-            self.ui.label.setText('Неправильный логин')
-            user_db.close()
-            return
-        if user.password == password:
-            if user.rights == 'admin':
+        query_login_teacher = 'SELECT * FROM users WHERE rights=\'teacher\''
+        con, cur = sql_stuff.setup_connection_as_teacher()
+        cur.execute(query_login_teacher)
+        teachers = cur.fetchall()
+        cur.close()
+        con.close()
+        for i in range(len(teachers)):
+            if teachers[i][1] == login and teachers[i][2] == password:
                 self.ui.stackedWidget.setCurrentIndex(1)
+                break
             else:
-                self.ui.label.setText('Недостаточно прав')
-        else:
-            self.ui.label.setText('Неправильный пароль')
-        user_db.close()
+                self.ui.label.setText('Неудача')  # todo более цивильный текст
 
     def add_task(self):
         add_task_window = AddTaskForm()
@@ -53,14 +46,20 @@ class entrance_window(QtWidgets.QDialog):
 
     def register_teacher(self):
         personal_name = self.ui.registration_personal_name_input.text()
-        login = self.ui.regidtration_login_input.text()
+        login = self.ui.regidtration_login_input.text()  # todo fix those names in ui file
         password_1 = self.ui.regitration_password_1.text()
         password_2 = self.ui.registration_password_2.text()
         if password_1 == password_2:
-            new_teacher = User(personal_name, login, password_1, rights='admin')
-            users_db = shelve.open(PATH_TO_USERS_DB)
-            users_db[new_teacher.id] = new_teacher
-            users_db.close()
+            query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+            VALUES (%s,%s,%s,%s,%s)'''
+            new_id = sql_stuff.get_new_id()
+            inserts = (new_id, login, password_1, personal_name, 'teacher')
+            con, cur = sql_stuff.setup_connection_as_teacher()
+            cur.execute(query_new_teacher, inserts)
+            con.commit()
+            cur.close()
+            con.close()
+            self.ui.stackedWidget.setCurrentIndex(1)
         else:
             print('Пароли не совпадают')  # todo remake with label
 

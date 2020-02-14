@@ -1,12 +1,12 @@
-import shelve
-from global_stuff import possible_figures, PATH_TO_TASK_DB, \
-    PATH_TO_ANSWERS_DB, Task, TaskFigure, PATH_TO_USERS_DB, User,\
+import pickle
+from global_stuff import possible_figures, Task, TaskFigure, \
     Answer, AnswerFigure, colors_of_figures
 from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
 from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
 from PyQt5 import QtWidgets, QtCore
 import sys
+import sql_stuff
 
 # TODO добавить везде предупреждения о потенциальном исключении
 
@@ -59,7 +59,7 @@ class AddTaskForm(QtWidgets.QDialog):
         char_format.setBackground(self.colors_of_figures[self.edited_figure_type_index])
         cursor.setCharFormat(char_format)
 
-    def add_possible_words(self):  # todo переделать способ задания границ оборотов
+    def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
@@ -103,13 +103,15 @@ class AddTaskForm(QtWidgets.QDialog):
                     text=self.task_text,
                     highlighted_text=self.highlighted_task_text,
                     figures_list=self.task_figures_list)
-        print(task)
-        tasks_db = shelve.open(PATH_TO_TASK_DB)
-        tasks_db[task.name] = task
-        tasks_db.close()
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB)
-        answers_db[task.name] = {}
-        answers_db.close()
+        # print(task)
+        packed_task = pickle.dumps(task)
+        query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
+        insert = (self.task_name, packed_task)
+        con, cur = sql_stuff.setup_connection_as_teacher()
+        cur.execute(query_add_task, insert)
+        con.commit()
+        con.close()
+        cur.close()
 
 
 class CheckAnswersForm(QtWidgets.QDialog):
@@ -117,10 +119,12 @@ class CheckAnswersForm(QtWidgets.QDialog):
         super().__init__()
         self.ui = Ui_check_answers_window()
         self.ui.setupUi(self)
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB, 'r')
-        for i in answers_db.keys():
-            self.ui.list_of_tasks.addItem(i)
-        answers_db.close()
+
+        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbase'''
+        tasks_tup = sql_stuff.get_answer_as_teacher(query_get_task_names)
+        for i in range(len(tasks_tup)):
+            self.ui.list_of_tasks.addItem(tasks_tup[i][0])
+
         self.task_folder = ''
         self.student_folder = ''
         self.current_answer = None
@@ -133,31 +137,41 @@ class CheckAnswersForm(QtWidgets.QDialog):
     def open_tasks_folder(self, item):  # здесь важна адресация по именам и id
         self.task_folder = item.text()
         self.ui.list_of_students.clear()
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB, 'r')
-        users_db = shelve.open(PATH_TO_USERS_DB, 'r')
-        for i in answers_db[self.task_folder].keys():
-            name = users_db[i].personal_name
-            self.ui.list_of_students.addItem(name + ' ' + i)
-        answers_db.close()
-        users_db.close()
+
+        query_get_student_names = '''SELECT DISTINCT student_id, student_name FROM answerbase 
+        WHERE task_name=\'{}\''''.format(self.task_folder)
+        students_tup = sql_stuff.get_answer_as_teacher(query_get_student_names)
+        # print(students_tup)
+        student_strings = []
+        for i in range(len(students_tup)):
+            student_strings.append(students_tup[i][1] + ' || ' + str(students_tup[i][0]))
+        for i in student_strings:
+            self.ui.list_of_students.addItem(i)
 
     def open_students_folder(self, item):
-        self.student_folder = item.text().split()[-1]
+        self.student_folder = int(item.text().split()[-1])
         self.ui.list_of_answers.clear()
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB, 'r')
-        for i in range(len(answers_db[self.task_folder][self.student_folder])):
-            time_tag = answers_db[self.task_folder][self.student_folder][i].time
-            self.ui.list_of_answers.addItem(str(i+1) + '. ' + time_tag)
-        answers_db.close()
+
+        query_get_answer_times = '''SELECT completion_date FROM answerbase
+        WHERE task_name=\'{}\' AND student_id={}'''.format(self.task_folder, self.student_folder)
+        times_tup = sql_stuff.get_answer_as_teacher(query_get_answer_times)
+
+        for i in range(len(times_tup)):
+            self.ui.list_of_answers.addItem(times_tup[i][0])
 
     def check_answer(self, item):
-        self.current_answer = int(item.text().split('.')[0]) - 1
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB, 'r')
-        answer = answers_db[self.task_folder][self.student_folder][self.current_answer]
-        answers_db.close()
-        tasks_db = shelve.open(PATH_TO_TASK_DB)
-        task = tasks_db[self.task_folder]
-        tasks_db.close()
+        self.current_answer = item.text()
+        query_get_answer = '''SELECT answer_object FROM answerbase WHERE task_name=\'{}\' AND student_id={} 
+        AND completion_date=\'{}\''''.format(self.task_folder, self.student_folder, self.current_answer)
+        answer_tup = sql_stuff.get_answer_as_teacher(query_get_answer)
+        packed_answer = answer_tup[0][0]
+        answer = pickle.loads(packed_answer)
+
+        query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
+        task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
+        packed_task = task_tup[0][0]
+        task = pickle.loads(packed_task)
+
         correct, not_found, not_right = answer.answer_checker(task)
 
         self.ui.label_found_correct.setText('Найдено правильно {}'.format(len(correct)))
@@ -181,10 +195,12 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.text_not_found.setText(not_found_text)
 
     def show_task_text(self):
-        tasks_db = shelve.open(PATH_TO_TASK_DB)
-        task = tasks_db[self.task_folder]
+        query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
+        task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
+        packed_task = task_tup[0][0]
+        task = pickle.loads(packed_task)
         task_text = task.highlighted_text
-        tasks_db.close()
+
         text_window = TextWindow(text=task_text)
         text_window.exec()
 
@@ -199,7 +215,7 @@ class TextWindow(QtWidgets.QDialog):
 
 if __name__=='__main__':
     app = QtWidgets.QApplication([])
-    application = AddTaskForm()
+    application = CheckAnswersForm()
     application.show()
 
     sys.exit(app.exec())

@@ -1,12 +1,13 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from answer_adding_window import Ui_answer_edit_window
-import sys, shelve
-
-from global_stuff import PATH_TO_TASK_DB, PATH_TO_ANSWERS_DB, possible_figures, Answer, AnswerFigure, colors_of_figures
+import sys
+import sql_stuff
+import pickle
+from global_stuff import possible_figures, Answer, AnswerFigure, colors_of_figures
 
 
 class answer_adding_window(QtWidgets.QDialog):
-    def __init__(self, id=None, task_name=None, parent=None):
+    def __init__(self, user_id=None, user_name=None, task_name=None, parent=None):
         super().__init__(parent)
         self.ui = Ui_answer_edit_window()
         self.ui.setupUi(self)
@@ -14,15 +15,22 @@ class answer_adding_window(QtWidgets.QDialog):
             self.ui.figures_buttons_list.addItem(possible_figures[i])
             self.ui.figures_buttons_list.item(i).setForeground(colors_of_figures[i])
 
-        self.user_id = id
+        self.user_id = user_id
+        self.user_name = user_name
         self.task_name = task_name
         self.figures_to_show = ''
         self.figures_list = []
 
-        tasks_db = shelve.open(PATH_TO_TASK_DB)
-        self.task_text = tasks_db[task_name].text
-        self.ui.task_text.setText(self.task_text)
-        tasks_db.close()
+        query_get_task = '''SELECT * FROM taskbase WHERE task_name=\'{}\''''.format(self.task_name)
+        con, cur = sql_stuff.setup_connection_as_student()
+        cur.execute(query_get_task)
+        selected_task = cur.fetchall()
+        cur.close()
+        con.close()
+        packed_task = selected_task[0][1]
+        task = pickle.loads(packed_task)
+
+        self.ui.task_text.setText(task.text)
         self.set_default_figure_fields()
 
         self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
@@ -57,12 +65,17 @@ class answer_adding_window(QtWidgets.QDialog):
 
     def complete_task(self):
         answer = Answer(self.user_id, self.task_name, self.figures_list)
-        answers_db = shelve.open(PATH_TO_ANSWERS_DB, writeback=True)
-        if answers_db[self.task_name].get(self.user_id) is None:
-            answers_db[self.task_name][self.user_id] = [answer]
-        else:
-            answers_db[self.task_name][self.user_id].append(answer)
-        answers_db.close()
+        query_save_answer = '''INSERT INTO answerbase
+        (`task_name`, `student_id`, `student_name`, `completion_date`, `answer_object`)
+         VALUES (%s,%s,%s,%s,%s)'''
+        packed_answer = pickle.dumps(answer)
+        insert = (self.task_name, self.user_id, self.user_name, answer.time, packed_answer)
+        con, cur = sql_stuff.setup_connection_as_student()
+        cur.execute(query_save_answer, insert)
+        con.commit()
+        cur.close()
+        con.close()
+
         print(answer)
 
     def set_default_figure_fields(self):
@@ -70,11 +83,12 @@ class answer_adding_window(QtWidgets.QDialog):
         # self.ui.label_chosen_figure_type.setText(self.user_id + ' ' + self.task_name)  # отладочное
         self.figure_symbol_range = []
         self.figure_text = None
+        self.ui.label_chosen_figure_type.setText('Оборот')
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = answer_adding_window(id='5272', task_name='Jack')
+    application = answer_adding_window(user_id=2, task_name='Тест 0')
     application.show()
 
     sys.exit(app.exec())

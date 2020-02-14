@@ -1,11 +1,6 @@
-import shelve
-from random import randint
 from datetime import datetime
 from PyQt5 import QtCore
 
-PATH_TO_TASK_DB = '../project_data/database/tasks'
-PATH_TO_ANSWERS_DB = '../project_data/database/answers'
-PATH_TO_USERS_DB = '../project_data/users_database/users'
 possible_figures = ('Метафора', 'Эпитет', 'Повтор')
 colors_of_figures = (QtCore.Qt.red, QtCore.Qt.blue, QtCore.Qt.green)
 
@@ -44,20 +39,20 @@ class Task:
         return n
 
 
-class User:
-    def __init__(self, personal_name, login, password, rights='user'):
-        id_db = shelve.open(PATH_TO_USERS_DB, 'r')
-        existing_ids = id_db.keys()
-        while 1:
-            new_id = str(randint(0, 10000))
-            if new_id not in existing_ids:
-                break
-        id_db.close()
-        self.id = new_id
-        self.personal_name = personal_name
-        self.login = login
-        self.password = password
-        self.rights = rights
+# class User:
+#     def __init__(self, personal_name, login, password, rights='user'):
+#         id_db = shelve.open(PATH_TO_USERS_DB, 'r')
+#         existing_ids = id_db.keys()
+#         while 1:
+#             new_id = str(randint(0, 10000))
+#             if new_id not in existing_ids:
+#                 break
+#         id_db.close()
+#         self.id = new_id
+#         self.personal_name = personal_name
+#         self.login = login
+#         self.password = password
+#         self.rights = rights
 
 
 class AnswerFigure:
@@ -94,7 +89,7 @@ class Answer:
         self.time = str(datetime.today())[:16]
 
     def __str__(self):
-        n = ("id>" + self.student_id + " " + self.task_name + "\n")
+        n = ("id>" + str(self.student_id) + " " + self.task_name + "\n")
         counter = 1
         for i in range(len(self.answer_figures_list)):
             n += (str(counter) + " ")
