@@ -4,11 +4,12 @@ from global_stuff import possible_figures, Task, TaskFigure, \
 from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
 from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import sys
 import sql_stuff
 
 # TODO добавить везде предупреждения о потенциальном исключении
+task_text_window = None  # Костылёк?
 
 
 class AddTaskForm(QtWidgets.QDialog):
@@ -41,6 +42,7 @@ class AddTaskForm(QtWidgets.QDialog):
         self.ui.button_add_figure.clicked.connect(self.add_figure_to_list)
         self.ui.button_add_task.clicked.connect(self.add_task)
         self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
+        self.ui.button_delete_last_figure.clicked.connect(self.delete_last_figure)
 
     def accept_text(self):
         self.task_text = self.ui.task_text.toHtml()
@@ -51,7 +53,7 @@ class AddTaskForm(QtWidgets.QDialog):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.edited_figure_key_symbols += range(start, end)
+        self.edited_figure_key_symbols += range(start, end)  # todo переделать на end + 1 и исправить все что за этим следует
         self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
         # print(sorted(self.edited_figure_key_symbols))
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
@@ -96,6 +98,19 @@ class AddTaskForm(QtWidgets.QDialog):
         # for i in self.task_figures_list:
         #     print(i)
 
+    def delete_last_figure(self):
+        deleted_figure = self.task_figures_list.pop()
+        start = deleted_figure.key_symbols[0]
+        end = deleted_figure.key_symbols[-1] + 1
+        print(self.task_figures_list, start, end)
+        cursor = self.ui.task_text.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+        char_format = cursor.charFormat()
+        char_format.setBackground(QtCore.Qt.white)
+        cursor.setCharFormat(char_format)
+        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+
     def add_task(self):
         self.highlighted_task_text = self.ui.task_text.toHtml()
         self.task_name = self.ui.task_name_input.toPlainText()
@@ -120,7 +135,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui = Ui_check_answers_window()
         self.ui.setupUi(self)
 
-        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbase'''
+        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbase ORDER BY task_name'''
         tasks_tup = sql_stuff.get_answer_as_teacher(query_get_task_names)
         for i in range(len(tasks_tup)):
             self.ui.list_of_tasks.addItem(tasks_tup[i][0])
@@ -128,18 +143,20 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.task_folder = ''
         self.student_folder = ''
         self.current_answer = None
+        self.current_answer_highlighted_text = None
 
         self.ui.list_of_tasks.itemClicked.connect(self.open_tasks_folder)
         self.ui.list_of_students.itemClicked.connect(self.open_students_folder)
         self.ui.list_of_answers.itemClicked.connect(self.check_answer)
         self.ui.button_show_task_text.clicked.connect(self.show_task_text)
+        self.ui.button_show_answer_text.clicked.connect(self.show_answer_text)
 
     def open_tasks_folder(self, item):  # здесь важна адресация по именам и id
         self.task_folder = item.text()
         self.ui.list_of_students.clear()
 
         query_get_student_names = '''SELECT DISTINCT student_id, student_name FROM answerbase 
-        WHERE task_name=\'{}\''''.format(self.task_folder)
+        WHERE task_name=\'{}\' ORDER BY student_name'''.format(self.task_folder)
         students_tup = sql_stuff.get_answer_as_teacher(query_get_student_names)
         # print(students_tup)
         student_strings = []
@@ -153,7 +170,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.list_of_answers.clear()
 
         query_get_answer_times = '''SELECT completion_date FROM answerbase
-        WHERE task_name=\'{}\' AND student_id={}'''.format(self.task_folder, self.student_folder)
+        WHERE task_name=\'{}\' AND student_id={} ORDER BY completion_date'''.format(self.task_folder, self.student_folder)
         times_tup = sql_stuff.get_answer_as_teacher(query_get_answer_times)
 
         for i in range(len(times_tup)):
@@ -166,6 +183,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         answer_tup = sql_stuff.get_answer_as_teacher(query_get_answer)
         packed_answer = answer_tup[0][0]
         answer = pickle.loads(packed_answer)
+        self.current_answer_highlighted_text = answer.highlighted_text
 
         query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
         task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
@@ -201,7 +219,12 @@ class CheckAnswersForm(QtWidgets.QDialog):
         task = pickle.loads(packed_task)
         task_text = task.highlighted_text
 
-        text_window = TextWindow(text=task_text)
+        global task_text_window
+        task_text_window = TextWindow(text=task_text)
+        task_text_window.open()
+
+    def show_answer_text(self):
+        text_window = TextWindow(text=self.current_answer_highlighted_text)
         text_window.exec()
 
 

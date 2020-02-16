@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui, QtCore
 from answer_adding_window import Ui_answer_edit_window
 import sys
 import sql_stuff
@@ -36,6 +36,7 @@ class answer_adding_window(QtWidgets.QDialog):
         self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
         self.ui.button_add_figure.clicked.connect(self.add_figure)
         self.ui.button_finish_task.clicked.connect(self.complete_task)
+        self.ui.button_delete_last_figure.clicked.connect(self.delete_last_figure)
 
     def set_figure_type(self, item):
         self.figure_type = possible_figures.index(item.text())
@@ -53,7 +54,8 @@ class answer_adding_window(QtWidgets.QDialog):
                               symbols_range=self.figure_symbol_range,
                               figure_text=self.figure_text)
         self.figures_list.append(figure)
-        self.figures_to_show += '%s || %s \n' % (possible_figures[self.figure_type], self.figure_text)
+        # self.figures_to_show += '%s || %s \n' % (possible_figures[self.figure_type], self.figure_text)
+        self.refresh_figures_to_show()
         self.ui.figures_browser.setText(self.figures_to_show)
         print(figure)
 
@@ -64,7 +66,8 @@ class answer_adding_window(QtWidgets.QDialog):
         self.set_default_figure_fields()
 
     def complete_task(self):
-        answer = Answer(self.user_id, self.task_name, self.figures_list)
+        answer_highlighted_text = self.ui.task_text.toHtml()
+        answer = Answer(self.user_id, self.task_name, self.figures_list, answer_highlighted_text)
         query_save_answer = '''INSERT INTO answerbase
         (`task_name`, `student_id`, `student_name`, `completion_date`, `answer_object`)
          VALUES (%s,%s,%s,%s,%s)'''
@@ -85,10 +88,30 @@ class answer_adding_window(QtWidgets.QDialog):
         self.figure_text = None
         self.ui.label_chosen_figure_type.setText('Оборот')
 
+    def delete_last_figure(self):
+        deleted_figure = self.figures_list.pop()
+        start = deleted_figure.symbols_range[0]
+        end = deleted_figure.symbols_range[-1] + 1
+        print(self.figures_list, start, end)
+        cursor = self.ui.task_text.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+        char_format = cursor.charFormat()
+        char_format.setBackground(QtCore.Qt.white)
+        cursor.setCharFormat(char_format)
+        self.refresh_figures_to_show()
+        self.ui.figures_browser.setText(self.figures_to_show)
+
+    def refresh_figures_to_show(self):
+        self.figures_to_show = ''
+        for i in range(len(self.figures_list)):
+            self.figures_to_show += '%s || %s \n' % (possible_figures[self.figures_list[i].figure_type],
+                                                     self.figures_list[i].figure_text)
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = answer_adding_window(user_id=2, task_name='Тест 0')
+    application = answer_adding_window(user_id=1, user_name='Преподаватель 0', task_name='Тест 0')
     application.show()
 
     sys.exit(app.exec())

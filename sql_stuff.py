@@ -18,6 +18,22 @@ def setup_connection_as_student():
     return con, cur
 
 
+def insert_as_student(query, insert):
+    con, cur = setup_connection_as_student()
+    cur.execute(query, insert)
+    con.commit()
+    cur.close()
+    con.close()
+
+
+def insert_as_teacher(query, insert):
+    con, cur = setup_connection_as_teacher()
+    cur.execute(query, insert)
+    con.commit()
+    cur.close()
+    con.close()
+
+
 def get_answer_as_student(query):
     con, cur = setup_connection_as_student()
     cur.execute(query)
@@ -44,3 +60,15 @@ def get_new_id():
     con.close()
     new_id = current_top_id[0][0] + 1
     return new_id
+
+
+def check_login_is_available(login):
+    query_check_login = '''SELECT login FROM users'''
+    logins_tuple = get_answer_as_teacher(query_check_login)
+    logins = []
+    for i in logins_tuple:
+        logins.append(i[0])
+    if login in logins:
+        return False
+    else:
+        return True

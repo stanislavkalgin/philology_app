@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_answer_edit_window(object):
     def setupUi(self, answer_edit_window):
         answer_edit_window.setObjectName("answer_edit_window")
-        answer_edit_window.resize(976, 694)
+        answer_edit_window.resize(921, 616)
         self.gridLayout = QtWidgets.QGridLayout(answer_edit_window)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -36,11 +36,23 @@ class Ui_answer_edit_window(object):
         self.label_chosen_figure_type.setAlignment(QtCore.Qt.AlignCenter)
         self.label_chosen_figure_type.setObjectName("label_chosen_figure_type")
         self.verticalLayout.addWidget(self.label_chosen_figure_type)
+        self.button_delete_last_figure = QtWidgets.QPushButton(answer_edit_window)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.button_delete_last_figure.sizePolicy().hasHeightForWidth())
+        self.button_delete_last_figure.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.button_delete_last_figure.setFont(font)
+        self.button_delete_last_figure.setObjectName("button_delete_last_figure")
+        self.verticalLayout.addWidget(self.button_delete_last_figure)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.verticalLayout.setStretch(0, 3)
         self.verticalLayout.setStretch(1, 1)
-        self.verticalLayout.setStretch(2, 4)
+        self.verticalLayout.setStretch(2, 1)
+        self.verticalLayout.setStretch(3, 4)
         self.gridLayout.addLayout(self.verticalLayout, 0, 1, 1, 1)
         self.figures_browser = QtWidgets.QTextBrowser(answer_edit_window)
         font = QtGui.QFont()
@@ -89,6 +101,9 @@ class Ui_answer_edit_window(object):
         _translate = QtCore.QCoreApplication.translate
         answer_edit_window.setWindowTitle(_translate("answer_edit_window", "Составление ответа на задание"))
         self.label_chosen_figure_type.setText(_translate("answer_edit_window", "Оборот"))
+        self.button_delete_last_figure.setText(_translate("answer_edit_window", "Удалить\n"
+"последний\n"
+"оборот"))
         self.figures_browser.setPlaceholderText(_translate("answer_edit_window", "Добавленные обороты"))
         self.button_add_figure.setText(_translate("answer_edit_window", "Добавить\n"
 "оборот"))

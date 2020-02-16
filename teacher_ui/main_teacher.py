@@ -14,18 +14,16 @@ class entrance_window(QtWidgets.QDialog):
         self.ui.entrance_button.clicked.connect(self.check_login_password)
         self.ui.button_add_task.clicked.connect(self.add_task)
         self.ui.button_check_task.clicked.connect(self.check_tasks)
-        self.ui.button_new_teacher.clicked.connect(self.go_to_registration)
-        self.ui.registration_button_register.clicked.connect(self.register_teacher)
+        self.ui.button_new_teacher.clicked.connect(self.go_to_teacher_registration)
+        self.ui.button_registration.clicked.connect(self.go_to_student_registration)
+        self.ui.reg_teacher_button_register.clicked.connect(self.register_teacher)
+        self.ui.reg_student_button_register.clicked.connect(self.register_student)
 
     def check_login_password(self):
         login = self.ui.login_input.text()
         password = self.ui.password_input.text()
         query_login_teacher = 'SELECT * FROM users WHERE rights=\'teacher\''
-        con, cur = sql_stuff.setup_connection_as_teacher()
-        cur.execute(query_login_teacher)
-        teachers = cur.fetchall()
-        cur.close()
-        con.close()
+        teachers = sql_stuff.get_answer_as_teacher(query_login_teacher)
         for i in range(len(teachers)):
             if teachers[i][1] == login and teachers[i][2] == password:
                 self.ui.stackedWidget.setCurrentIndex(1)
@@ -41,27 +39,43 @@ class entrance_window(QtWidgets.QDialog):
         check_task_window = CheckAnswersForm()
         check_task_window.exec()
 
-    def go_to_registration(self):
+    def go_to_teacher_registration(self):
         self.ui.stackedWidget.setCurrentIndex(2)
 
+    def go_to_student_registration(self):
+        self.ui.stackedWidget.setCurrentIndex(3)
+
     def register_teacher(self):
-        personal_name = self.ui.registration_personal_name_input.text()
-        login = self.ui.regidtration_login_input.text()  # todo fix those names in ui file
-        password_1 = self.ui.regitration_password_1.text()
-        password_2 = self.ui.registration_password_2.text()
-        if password_1 == password_2:
-            query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
-            VALUES (%s,%s,%s,%s,%s)'''
-            new_id = sql_stuff.get_new_id()
-            inserts = (new_id, login, password_1, personal_name, 'teacher')
-            con, cur = sql_stuff.setup_connection_as_teacher()
-            cur.execute(query_new_teacher, inserts)
-            con.commit()
-            cur.close()
-            con.close()
-            self.ui.stackedWidget.setCurrentIndex(1)
+        personal_name = self.ui.reg_teacher_personal_name_input.text()
+        login = self.ui.reg_teacher_login_input.text()
+        password_1 = self.ui.reg_teacher_password_1.text()
+        password_2 = self.ui.reg_teacher_password_2.text()
+        if sql_stuff.check_login_is_available(login):
+            if password_1 == password_2:
+                query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+                VALUES (%s,%s,%s,%s,%s)'''
+                new_id = sql_stuff.get_new_id()
+                inserts = (new_id, login, password_1, personal_name, 'teacher')
+                sql_stuff.insert_as_teacher(query_new_teacher, inserts)
+                self.ui.stackedWidget.setCurrentIndex(1)
+            else:
+                self.ui.teacher_register_label.setText('Пароли не совпадают')
         else:
-            print('Пароли не совпадают')  # todo remake with label
+            self.ui.teacher_register_label.setText('Логин занят')
+
+    def register_student(self):
+        personal_name = self.ui.reg_student_personal_name_input.text()
+        login = self.ui.reg_student_login_input.text()
+        password = self.ui.reg_student_password.text()
+        if sql_stuff.check_login_is_available(login):
+            new_id = sql_stuff.get_new_id()
+            query_new_student = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+                        VALUES (%s,%s,%s,%s,%s)'''
+            inserts = (new_id, login, password, personal_name, 'student')
+            sql_stuff.insert_as_teacher(query_new_student, inserts)
+            self.ui.student_register_label.setText((personal_name + '\nуспешно зарегестрирован'))
+        else:
+            self.ui.student_register_label.setText('Логин занят')
 
 
 app = QtWidgets.QApplication([])

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>926</width>
-    <height>574</height>
+    <width>780</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1">
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1,1">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
@@ -67,7 +67,19 @@
           </font>
          </property>
          <property name="text">
-          <string>Показать текст задания</string>
+          <string>Текст задания</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="button_show_answer_text">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Текст ответа</string>
          </property>
         </widget>
        </item>

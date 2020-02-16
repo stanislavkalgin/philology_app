@@ -82,11 +82,12 @@ class AnswerFigure:
 
 
 class Answer:
-    def __init__(self, student_id, task_name, answer_figures_list):
+    def __init__(self, student_id, task_name, answer_figures_list, highlighted_text):
         self.student_id = student_id
         self.task_name = task_name
         self.answer_figures_list = answer_figures_list
         self.time = str(datetime.today())[:16]
+        self.highlighted_text = highlighted_text
 
     def __str__(self):
         n = ("id>" + str(self.student_id) + " " + self.task_name + "\n")

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>976</width>
-    <height>694</height>
+    <width>921</width>
+    <height>616</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout" rowstretch="5,1" columnstretch="10,1">
    <item row="0" column="1">
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="3,1,4">
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="3,1,1,4">
      <item>
       <widget class="QListWidget" name="figures_buttons_list">
        <property name="font">
@@ -43,6 +43,26 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="button_delete_last_figure">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Удалить
+последний
+оборот</string>
        </property>
       </widget>
      </item>

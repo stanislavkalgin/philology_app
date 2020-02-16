@@ -1,9 +1,8 @@
 from PyQt5 import QtWidgets
 from entrance_form_student import Ui_entrance_form
 import sys
-import student  # temp
+import student  # temp or not
 import sql_stuff
-# todo наполнение списка заданиями
 
 
 class entrance_window(QtWidgets.QDialog):
@@ -34,21 +33,13 @@ class entrance_window(QtWidgets.QDialog):
                 self.user_id = students[i][0]
                 self.user_name = students[i][3]
                 self.ui.stackedWidget.setCurrentIndex(2)
-
-                # print(self.user_id)
+                query_get_task_names = '''SELECT `task_name` FROM taskbase ORDER BY task_name'''
+                tasks = sql_stuff.get_answer_as_student(query_get_task_names)
+                for j in range(len(tasks)):
+                    self.ui.task_list.addItem(tasks[j][0])
                 break
             else:
                 self.ui.entrance_label.setText('Неудача')  # todo более цивильный текст
-
-        query_get_task_names = '''SELECT `task_name` FROM taskbase'''
-        con, cur = sql_stuff.setup_connection_as_student()
-        cur.execute(query_get_task_names)
-        tasks = cur.fetchall()
-        cur.close()
-        con.close()
-
-        for i in range(len(tasks)):
-            self.ui.task_list.addItem(tasks[i][0])
 
     def open_add_answer_window(self, item):
         add_answer_window = student.answer_adding_window(user_id=self.user_id,
@@ -64,19 +55,18 @@ class entrance_window(QtWidgets.QDialog):
         login = self.ui.register_login.text()
         password_1 = self.ui.register_password_1.text()
         password_2 = self.ui.register_password_2.text()
-        if password_1 == password_2:
-            query_new_student = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
-                        VALUES (%s,%s,%s,%s,%s)'''
-            new_id = sql_stuff.get_new_id()
-            inserts = (new_id, login, password_1, personal_name, 'student')
-            con, cur = sql_stuff.setup_connection_as_student()
-            cur.execute(query_new_student, inserts)
-            con.commit()
-            cur.close()
-            con.close()
-            self.ui.stackedWidget.setCurrentIndex(0)
+        if sql_stuff.check_login_is_available(login):
+            if password_1 == password_2:
+                query_new_student = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+                            VALUES (%s,%s,%s,%s,%s)'''
+                new_id = sql_stuff.get_new_id()
+                inserts = (new_id, login, password_1, personal_name, 'student')
+                sql_stuff.insert_as_student(query_new_student, inserts)
+                self.ui.stackedWidget.setCurrentIndex(0)
+            else:
+                self.ui.register_label.setText('Пароли не совпадают')
         else:
-            self.ui.register_label.setText('Пароли не совпадают')
+            self.ui.register_label.setText('Логин занят')
 
 
 app = QtWidgets.QApplication([])
