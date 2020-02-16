@@ -3,6 +3,7 @@ from global_stuff import possible_figures, Task, TaskFigure, \
     Answer, AnswerFigure, colors_of_figures
 from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
+from task_modify_form import Ui_Dialog as Ui_task_modify_form
 from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys
@@ -122,11 +123,7 @@ class AddTaskForm(QtWidgets.QDialog):
         packed_task = pickle.dumps(task)
         query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
         insert = (self.task_name, packed_task)
-        con, cur = sql_stuff.setup_connection_as_teacher()
-        cur.execute(query_add_task, insert)
-        con.commit()
-        con.close()
-        cur.close()
+        sql_stuff.insert_as_teacher(query_add_task, insert)
 
 
 class CheckAnswersForm(QtWidgets.QDialog):
@@ -238,7 +235,7 @@ class TextWindow(QtWidgets.QDialog):
 
 if __name__=='__main__':
     app = QtWidgets.QApplication([])
-    application = CheckAnswersForm()
+    application = AddTaskForm()
     application.show()
 
     sys.exit(app.exec())

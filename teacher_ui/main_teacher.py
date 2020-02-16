@@ -1,7 +1,9 @@
 from PyQt5 import QtWidgets
 from entrance_form_teacher import Ui_entrance_form  # IDE зря ругается
+import pickle
 import sys
 from teacher import AddTaskForm, CheckAnswersForm
+from modify_task import ModifyTaskForm
 import sql_stuff
 
 
@@ -18,6 +20,8 @@ class entrance_window(QtWidgets.QDialog):
         self.ui.button_registration.clicked.connect(self.go_to_student_registration)
         self.ui.reg_teacher_button_register.clicked.connect(self.register_teacher)
         self.ui.reg_student_button_register.clicked.connect(self.register_student)
+        self.ui.button_edit_task.clicked.connect(self.go_to_task_modification)
+        self.ui.list_of_edited_tasks.itemClicked.connect(self.modify_task)
 
     def check_login_password(self):
         login = self.ui.login_input.text()
@@ -76,6 +80,22 @@ class entrance_window(QtWidgets.QDialog):
             self.ui.student_register_label.setText((personal_name + '\nуспешно зарегестрирован'))
         else:
             self.ui.student_register_label.setText('Логин занят')
+
+    def go_to_task_modification(self):
+        self.ui.stackedWidget.setCurrentIndex(4)
+        query_get_task_names = '''SELECT task_name FROM taskbase'''
+        task_names_tuple = sql_stuff.get_answer_as_teacher(query_get_task_names)
+        for i in task_names_tuple:
+            self.ui.list_of_edited_tasks.addItem(i[0])
+
+    def modify_task(self, item):
+        task_name = item.text()
+        query_get_task_objects = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(task_name)
+        task_tuple = sql_stuff.get_answer_as_teacher(query_get_task_objects)
+        packed_task = task_tuple[0][0]
+        task = pickle.loads(packed_task)
+        edit_window = ModifyTaskForm(task)
+        edit_window.exec()
 
 
 app = QtWidgets.QApplication([])

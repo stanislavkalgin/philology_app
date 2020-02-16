@@ -111,7 +111,7 @@ class answer_adding_window(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = answer_adding_window(user_id=1, user_name='Преподаватель 0', task_name='Тест 0')
+    application = answer_adding_window(user_id=1, user_name='Преподаватель 0', task_name='Test 2')
     application.show()
 
     sys.exit(app.exec())
