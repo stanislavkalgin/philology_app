@@ -1,6 +1,3 @@
-
-## MUST BE GITIGNORED for safety reasons!!!!!!!
-
 import pymysql
 from sql_links import *
 

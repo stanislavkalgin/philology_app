@@ -1,9 +1,8 @@
 import pickle
 from global_stuff import possible_figures, Task, TaskFigure, \
-    Answer, AnswerFigure, colors_of_figures
+    Answer, AnswerFigure
 from task_modify_form import Ui_Dialog as Ui_task_modify_form
 from deletion_dialog import Ui_deletion_dialog
-from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys
 import sql_stuff
@@ -16,9 +15,15 @@ class ModifyTaskForm(QtWidgets.QDialog):
         super().__init__()
         self.ui = Ui_task_modify_form()
         self.ui.setupUi(self)
-        for i in range(len(possible_figures)):
-            self.ui.figures_buttons_list.addItem(possible_figures[i])
-            self.ui.figures_buttons_list.item(i).setForeground(colors_of_figures[i])
+        self.possible_figures = possible_figures.copy()
+        
+        keys = []
+        for i in self.possible_figures.keys():
+            keys.append(i)
+        keys.sort()
+        for i in range(len(keys)):
+            self.ui.figures_buttons_list.addItem(keys[i])
+            self.ui.figures_buttons_list.item(i).setForeground(self.possible_figures[keys[i]])
 
         self.task_text = task.text
         self.task_name = task.name
@@ -103,6 +108,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.logic_figure_to_delete_is_chosen = True
         self.edited_figure_number = number
         self.ui.figure_info_key_words.setText(self.task_figures_list[number].key_symbols_text)
+        self.ui.figure_info_possible_words.setText(self.task_figures_list[number].possible_symbols_text)
         self.ui.figure_info_type.setText(possible_figures[self.task_figures_list[number].type])
         # todo диапазон выделения показывать
         # todo заглушение всего кроме удаления
@@ -120,6 +126,8 @@ class ModifyTaskForm(QtWidgets.QDialog):
                 self.edited_figure_number = figures_dict[key]
                 self.logic_figure_to_delete_is_chosen = True
                 self.ui.figure_info_key_words.setText(self.task_figures_list[self.edited_figure_number].key_symbols_text)
+                self.ui.figure_info_possible_words.setText(
+                    self.task_figures_list[self.edited_figure_number].possible_symbols_text)
                 self.ui.figure_info_type.setText(possible_figures[self.task_figures_list[self.edited_figure_number].type])
                 break
 

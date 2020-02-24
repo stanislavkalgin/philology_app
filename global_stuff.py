@@ -1,8 +1,9 @@
 from datetime import datetime
 from PyQt5 import QtCore
 
-possible_figures = ('Метафора', 'Эпитет', 'Повтор')
-colors_of_figures = (QtCore.Qt.red, QtCore.Qt.blue, QtCore.Qt.green)
+# possible_figures = ('Метафора', 'Эпитет', 'Повтор')
+# colors_of_figures = (QtCore.Qt.red, QtCore.Qt.blue, QtCore.Qt.green)
+possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt.blue, 'Повтор': QtCore.Qt.green}
 
 
 class TaskFigure:
@@ -17,7 +18,7 @@ class TaskFigure:
 
     def __str__(self):  # отладочное
         return ('[TaskFigure: type - %s, key symbols - %s, possible symbols from %s to %s]'
-                % (possible_figures[self.type], self.key_symbols,
+                % (self.type, self.key_symbols,
                    self.possible_symbols[0], self.possible_symbols[-1]))
 
 

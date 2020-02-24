@@ -3,7 +3,7 @@ from answer_adding_window import Ui_answer_edit_window
 import sys
 import sql_stuff
 import pickle
-from global_stuff import possible_figures, Answer, AnswerFigure, colors_of_figures
+from global_stuff import possible_figures, Answer, AnswerFigure
 
 
 class answer_adding_window(QtWidgets.QDialog):
@@ -11,9 +11,15 @@ class answer_adding_window(QtWidgets.QDialog):
         super().__init__(parent)
         self.ui = Ui_answer_edit_window()
         self.ui.setupUi(self)
-        for i in range(len(possible_figures)):
-            self.ui.figures_buttons_list.addItem(possible_figures[i])
-            self.ui.figures_buttons_list.item(i).setForeground(colors_of_figures[i])
+        self.possible_figures = possible_figures.copy()
+
+        keys = []
+        for i in self.possible_figures.keys():
+            keys.append(i)
+        keys.sort()
+        for i in range(len(keys)):
+            self.ui.figures_buttons_list.addItem(keys[i])
+            self.ui.figures_buttons_list.item(i).setForeground(self.possible_figures[keys[i]])
 
         self.user_id = user_id
         self.user_name = user_name
@@ -22,11 +28,7 @@ class answer_adding_window(QtWidgets.QDialog):
         self.figures_list = []
 
         query_get_task = '''SELECT * FROM taskbase WHERE task_name=\'{}\''''.format(self.task_name)
-        con, cur = sql_stuff.setup_connection_as_student()
-        cur.execute(query_get_task)
-        selected_task = cur.fetchall()
-        cur.close()
-        con.close()
+        selected_task = sql_stuff.get_answer_as_student(query_get_task)
         packed_task = selected_task[0][1]
         task = pickle.loads(packed_task)
 
@@ -39,8 +41,8 @@ class answer_adding_window(QtWidgets.QDialog):
         self.ui.button_delete_last_figure.clicked.connect(self.delete_last_figure)
 
     def set_figure_type(self, item):
-        self.figure_type = possible_figures.index(item.text())
-        self.ui.label_chosen_figure_type.setText(possible_figures[self.figure_type])
+        self.figure_type = item.text()
+        self.ui.label_chosen_figure_type.setText(self.figure_type)
 
     def add_figure(self):
         cursor = self.ui.task_text.textCursor()
@@ -60,7 +62,7 @@ class answer_adding_window(QtWidgets.QDialog):
         print(figure)
 
         char_format = cursor.charFormat()
-        char_format.setBackground(colors_of_figures[self.figure_type])
+        char_format.setBackground(self.possible_figures[self.figure_type])
         cursor.setCharFormat(char_format)
 
         self.set_default_figure_fields()
@@ -73,11 +75,7 @@ class answer_adding_window(QtWidgets.QDialog):
          VALUES (%s,%s,%s,%s,%s)'''
         packed_answer = pickle.dumps(answer)
         insert = (self.task_name, self.user_id, self.user_name, answer.time, packed_answer)
-        con, cur = sql_stuff.setup_connection_as_student()
-        cur.execute(query_save_answer, insert)
-        con.commit()
-        cur.close()
-        con.close()
+        sql_stuff.insert_as_student(query_save_answer, insert)
 
         print(answer)
 
@@ -105,13 +103,13 @@ class answer_adding_window(QtWidgets.QDialog):
     def refresh_figures_to_show(self):
         self.figures_to_show = ''
         for i in range(len(self.figures_list)):
-            self.figures_to_show += '%s || %s \n' % (possible_figures[self.figures_list[i].figure_type],
+            self.figures_to_show += '%s || %s \n' % (self.figures_list[i].figure_type,
                                                      self.figures_list[i].figure_text)
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = answer_adding_window(user_id=1, user_name='Преподаватель 0', task_name='Test 2')
+    application = answer_adding_window(user_id=1, user_name='Преподаватель 0', task_name='Тест 1')
     application.show()
 
     sys.exit(app.exec())
