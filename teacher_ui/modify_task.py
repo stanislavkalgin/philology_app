@@ -34,10 +34,9 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.edited_figure_number = None
         self.edited_figure_key_symbols = []
         self.edited_figure_possible_symbols = []
-        self.edited_figure_type_index = None
+        self.edited_figure_type = None
         self.edited_figure_key_symbols_text = ''
         self.edited_figure_possible_symbols_text = ''
-        self.edited_figure_type_text = None
 
         # Загрузка полей изменяемого задания
         self.ui.task_text.setText(self.highlighted_task_text)
@@ -65,7 +64,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         # print(sorted(self.edited_figure_key_symbols))
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
         char_format = cursor.charFormat()
-        char_format.setBackground(colors_of_figures[self.edited_figure_type_index])
+        char_format.setBackground(possible_figures[self.edited_figure_type])
         cursor.setCharFormat(char_format)
 
     def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
@@ -78,13 +77,11 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
 
     def set_figure_type(self, item):
-        self.edited_figure_type_text = item.text()
-        self.edited_figure_type_index = possible_figures.index(self.edited_figure_type_text)
-        self.edited_figure_type_text = possible_figures[self.edited_figure_type_index]
-        self.ui.figure_info_type.setText(self.edited_figure_type_text)
+        self.edited_figure_type = item.text()
+        self.ui.figure_info_type.setText(self.edited_figure_type)
 
     def add_figure_to_list(self):
-        figure = TaskFigure(type=self.edited_figure_type_index,
+        figure = TaskFigure(type=self.edited_figure_type,
                             key_symbols=self.edited_figure_key_symbols,
                             key_symbols_text=self.edited_figure_key_symbols_text,
                             possible_symbols=self.edited_figure_possible_symbols,
@@ -99,7 +96,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.ui.list_widget_of_figures.clear()
         for i in range(len(self.task_figures_list)):
             figure_item = (str(i) + ' ' +
-                           possible_figures[self.task_figures_list[i].type] + '\n' +
+                           self.task_figures_list[i].type + '\n' +
                            self.task_figures_list[i].key_symbols_text[:50])
             self.ui.list_widget_of_figures.addItem(figure_item)
 
@@ -109,7 +106,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.edited_figure_number = number
         self.ui.figure_info_key_words.setText(self.task_figures_list[number].key_symbols_text)
         self.ui.figure_info_possible_words.setText(self.task_figures_list[number].possible_symbols_text)
-        self.ui.figure_info_type.setText(possible_figures[self.task_figures_list[number].type])
+        self.ui.figure_info_type.setText(self.task_figures_list[number].type)
         # todo диапазон выделения показывать
         # todo заглушение всего кроме удаления
         self.edited_figure_key_symbols = self.task_figures_list[number].key_symbols[:]
@@ -128,7 +125,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
                 self.ui.figure_info_key_words.setText(self.task_figures_list[self.edited_figure_number].key_symbols_text)
                 self.ui.figure_info_possible_words.setText(
                     self.task_figures_list[self.edited_figure_number].possible_symbols_text)
-                self.ui.figure_info_type.setText(possible_figures[self.task_figures_list[self.edited_figure_number].type])
+                self.ui.figure_info_type.setText(self.task_figures_list[self.edited_figure_number].type)
                 break
 
     def delete_figure(self):
@@ -153,10 +150,9 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.edited_figure_number = None
         self.edited_figure_key_symbols = []
         self.edited_figure_possible_symbols = []
-        self.edited_figure_type_index = None
+        self.edited_figure_type = None
         self.edited_figure_key_symbols_text = ''
         self.edited_figure_possible_symbols_text = ''
-        self.edited_figure_type_text = None
 
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
@@ -205,7 +201,7 @@ class DeletionDialog(QtWidgets.QDialog):
 
 
 if __name__ == '__main__':
-    task_tup = sql_stuff.get_answer_as_teacher('''SELECT task_object FROM taskbase WHERE task_name=\'Test 2\'''')
+    task_tup = sql_stuff.get_answer_as_teacher('''SELECT task_object FROM taskbase WHERE task_name=\'Тест 1\'''')
     task_packed = task_tup[0][0]
     task1 = pickle.loads(task_packed)
     app = QtWidgets.QApplication([])

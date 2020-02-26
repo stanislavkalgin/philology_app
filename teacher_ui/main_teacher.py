@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from entrance_form_teacher import Ui_entrance_form  # IDE зря ругается
+from entrance_form_teacher import Ui_entrance_form
 import pickle
 import sys
 from teacher import AddTaskForm, CheckAnswersForm

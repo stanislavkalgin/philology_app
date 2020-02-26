@@ -100,6 +100,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1">
      <item>
       <widget class="QPushButton" name="button_add_figure">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -118,6 +121,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="button_add_task">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -165,6 +171,9 @@
      </item>
      <item>
       <widget class="QListWidget" name="figures_buttons_list">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="font">
         <font>
          <pointsize>12</pointsize>
@@ -174,6 +183,9 @@
      </item>
      <item>
       <widget class="QLabel" name="figures_counter_label">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -196,6 +208,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="button_add_key_words">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -215,6 +230,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="button_add_possible_words">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -234,6 +252,9 @@
      </item>
      <item>
       <widget class="QPlainTextEdit" name="task_name_input">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -252,6 +273,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="button_delete_last_figure">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>

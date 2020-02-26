@@ -3,7 +3,12 @@ from PyQt5 import QtCore
 
 # possible_figures = ('Метафора', 'Эпитет', 'Повтор')
 # colors_of_figures = (QtCore.Qt.red, QtCore.Qt.blue, QtCore.Qt.green)
-possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt.blue, 'Повтор': QtCore.Qt.green}
+possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt.blue, 'Повтор': QtCore.Qt.green,
+                    'Сравнение': QtCore.Qt.red, 'Эвфемизм': QtCore.Qt.blue, 'Парадокс': QtCore.Qt.green,
+                    'Игра слов': QtCore.Qt.red, 'Антитеза': QtCore.Qt.blue, 'Аллюзия': QtCore.Qt.green,
+                    'Метонимия': QtCore.Qt.red, 'Параллелизм': QtCore.Qt.blue, 'Ономатопея': QtCore.Qt.green,
+                    'Эллипс': QtCore.Qt.red, 'Многосоюзие': QtCore.Qt.blue, 'Графон': QtCore.Qt.green,
+                    'Риторический вопрос': QtCore.Qt.red, 'Гипербола': QtCore.Qt.blue, 'Инверсия': QtCore.Qt.green}
 
 
 class TaskFigure:

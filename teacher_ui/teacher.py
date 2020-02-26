@@ -1,6 +1,6 @@
 import pickle
 from global_stuff import possible_figures, Task, TaskFigure, \
-    Answer, AnswerFigure  # , colors_of_figures
+    Answer, AnswerFigure
 from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
 from task_modify_form import Ui_Dialog as Ui_task_modify_form
@@ -10,7 +10,7 @@ import sys
 import sql_stuff
 
 # TODO добавить везде предупреждения о потенциальном исключении
-task_text_window = None  # Костылёк?
+task_text_window = None  # Костылёк (глобальная переменная)?
 
 
 class AddTaskForm(QtWidgets.QDialog):
@@ -51,7 +51,17 @@ class AddTaskForm(QtWidgets.QDialog):
     def accept_text(self):
         self.task_text = self.ui.task_text.toHtml()
         self.ui.task_text.setReadOnly(1)
-        # anything else?
+        # UI activation
+        self.ui.figures_buttons_list.setEnabled(True)
+        self.ui.button_delete_last_figure.setEnabled(True)
+        self.ui.button_add_figure.setEnabled(True)
+        self.ui.button_add_task.setEnabled(True)
+        self.ui.button_add_possible_words.setEnabled(True)
+        self.ui.button_add_key_words.setEnabled(True)
+        self.ui.task_name_input.setEnabled(True)
+        self.ui.figures_counter_label.setEnabled(True)
+        
+        self.ui.button_accept_text.setEnabled(False)
 
     def add_key_words(self):
         cursor = self.ui.task_text.textCursor()
@@ -235,7 +245,7 @@ class TextWindow(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = CheckAnswersForm()
+    application = AddTaskForm()
     application.show()
 
     sys.exit(app.exec())

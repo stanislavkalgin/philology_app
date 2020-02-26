@@ -22,11 +22,7 @@ class entrance_window(QtWidgets.QDialog):
         password = self.ui.entrance_password.text()
 
         query_login_student = 'SELECT * FROM users'
-        con, cur = sql_stuff.setup_connection_as_student()
-        cur.execute(query_login_student)
-        students = cur.fetchall()
-        cur.close()
-        con.close()
+        students = sql_stuff.get_answer_as_student(query_login_student)
 
         for i in range(len(students)):
             if students[i][1] == login and students[i][2] == password:
