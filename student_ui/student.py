@@ -44,6 +44,8 @@ class answer_adding_window(QtWidgets.QDialog):
         self.figure_type = item.text()
         self.ui.label_chosen_figure_type.setText(self.figure_type)
 
+        self.ui.button_add_figure.setEnabled(True)
+
     def add_figure(self):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
@@ -66,6 +68,7 @@ class answer_adding_window(QtWidgets.QDialog):
         cursor.setCharFormat(char_format)
 
         self.set_default_figure_fields()
+        self.ui.button_add_figure.setEnabled(False)
 
     def complete_task(self):
         answer_highlighted_text = self.ui.task_text.toHtml()
@@ -84,21 +87,25 @@ class answer_adding_window(QtWidgets.QDialog):
         # self.ui.label_chosen_figure_type.setText(self.user_id + ' ' + self.task_name)  # отладочное
         self.figure_symbol_range = []
         self.figure_text = None
-        self.ui.label_chosen_figure_type.setText('Оборот')
+        self.ui.label_chosen_figure_type.setText('Выберите тип\n оборота')
 
     def delete_last_figure(self):
-        deleted_figure = self.figures_list.pop()
-        start = deleted_figure.symbols_range[0]
-        end = deleted_figure.symbols_range[-1] + 1
-        print(self.figures_list, start, end)
-        cursor = self.ui.task_text.textCursor()
-        cursor.setPosition(start)
-        cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
-        char_format = cursor.charFormat()
-        char_format.setBackground(QtCore.Qt.white)
-        cursor.setCharFormat(char_format)
-        self.refresh_figures_to_show()
-        self.ui.figures_browser.setText(self.figures_to_show)
+        try:
+            deleted_figure = self.figures_list.pop()
+            start = deleted_figure.symbols_range[0]
+            end = deleted_figure.symbols_range[-1] + 1
+            print(self.figures_list, start, end)
+            cursor = self.ui.task_text.textCursor()
+            cursor.setPosition(start)
+            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+            char_format = cursor.charFormat()
+            char_format.setBackground(QtCore.Qt.white)
+            cursor.setCharFormat(char_format)
+            self.refresh_figures_to_show()
+            self.ui.figures_browser.setText(self.figures_to_show)
+        except:
+            self.ui.label_chosen_figure_type.setText('Ошибка удаления')
+
 
     def refresh_figures_to_show(self):
         self.figures_to_show = ''

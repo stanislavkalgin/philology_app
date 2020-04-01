@@ -54,32 +54,41 @@ class entrance_window(QtWidgets.QDialog):
         login = self.ui.reg_teacher_login_input.text()
         password_1 = self.ui.reg_teacher_password_1.text()
         password_2 = self.ui.reg_teacher_password_2.text()
-        if sql_stuff.check_login_is_available(login):
-            if password_1 == password_2:
-                query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
-                VALUES (%s,%s,%s,%s,%s)'''
-                new_id = sql_stuff.get_new_id()
-                inserts = (new_id, login, password_1, personal_name, 'teacher')
-                sql_stuff.insert_as_teacher(query_new_teacher, inserts)
-                self.ui.stackedWidget.setCurrentIndex(1)
+        if (personal_name != "" and
+                login != "" and
+                password_1 != "" and
+                password_2 != ""):
+            if sql_stuff.check_login_is_available(login):
+                if password_1 == password_2:
+                    query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+                    VALUES (%s,%s,%s,%s,%s)'''
+                    new_id = sql_stuff.get_new_id()
+                    inserts = (new_id, login, password_1, personal_name, 'teacher')
+                    sql_stuff.insert_as_teacher(query_new_teacher, inserts)
+                    self.ui.stackedWidget.setCurrentIndex(1)
+                else:
+                    self.ui.teacher_register_label.setText('Пароли не совпадают')
             else:
-                self.ui.teacher_register_label.setText('Пароли не совпадают')
+                self.ui.teacher_register_label.setText('Логин занят')
         else:
-            self.ui.teacher_register_label.setText('Логин занят')
+            self.ui.teacher_register_label.setText('Заполните все поля')
 
     def register_student(self):
         personal_name = self.ui.reg_student_personal_name_input.text()
         login = self.ui.reg_student_login_input.text()
         password = self.ui.reg_student_password.text()
-        if sql_stuff.check_login_is_available(login):
-            new_id = sql_stuff.get_new_id()
-            query_new_student = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
-                        VALUES (%s,%s,%s,%s,%s)'''
-            inserts = (new_id, login, password, personal_name, 'student')
-            sql_stuff.insert_as_teacher(query_new_student, inserts)
-            self.ui.student_register_label.setText((personal_name + '\nуспешно зарегестрирован'))
+        if personal_name != "" and login != "" and password != "":
+            if sql_stuff.check_login_is_available(login):
+                new_id = sql_stuff.get_new_id()
+                query_new_student = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 
+                            VALUES (%s,%s,%s,%s,%s)'''
+                inserts = (new_id, login, password, personal_name, 'student')
+                sql_stuff.insert_as_teacher(query_new_student, inserts)
+                self.ui.student_register_label.setText((personal_name + '\nуспешно зарегистрирован'))
+            else:
+                self.ui.student_register_label.setText('Логин занят')
         else:
-            self.ui.student_register_label.setText('Логин занят')
+            self.ui.student_register_label.setText('Заполните все поля')
 
     def go_to_task_modification(self):
         self.ui.stackedWidget.setCurrentIndex(4)

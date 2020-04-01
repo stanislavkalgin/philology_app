@@ -53,21 +53,18 @@ class AddTaskForm(QtWidgets.QDialog):
         self.ui.task_text.setReadOnly(1)
         # UI activation
         self.ui.figures_buttons_list.setEnabled(True)
-        self.ui.button_delete_last_figure.setEnabled(True)
-        self.ui.button_add_figure.setEnabled(True)
         self.ui.button_add_task.setEnabled(True)
-        self.ui.button_add_possible_words.setEnabled(True)
-        self.ui.button_add_key_words.setEnabled(True)
         self.ui.task_name_input.setEnabled(True)
         self.ui.figures_counter_label.setEnabled(True)
-        
+
         self.ui.button_accept_text.setEnabled(False)
 
     def add_key_words(self):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.edited_figure_key_symbols += range(start, end)  # todo переделать на end + 1 и исправить все что за этим следует
+        self.edited_figure_key_symbols += range(start,
+                                                end)  # todo переделать на end + 1 и исправить все что за этим следует
         self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
         # print(sorted(self.edited_figure_key_symbols))
         self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
@@ -79,7 +76,7 @@ class AddTaskForm(QtWidgets.QDialog):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.edited_figure_possible_symbols = [start, end-1]  # see if causes problems
+        self.edited_figure_possible_symbols = [start, end - 1]  # see if causes problems
         self.edited_figure_possible_symbols_text = cursor.selectedText()
         # print(sorted(self.edited_figure_possible_symbols))
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
@@ -88,52 +85,72 @@ class AddTaskForm(QtWidgets.QDialog):
         self.edited_figure_type = item.text()
         self.ui.figure_info_type.setText(self.edited_figure_type)
 
-    def add_figure_to_list(self):
-        figure = TaskFigure(type=self.edited_figure_type,
-                            key_symbols=self.edited_figure_key_symbols,
-                            key_symbols_text=self.edited_figure_key_symbols_text,
-                            possible_symbols=self.edited_figure_possible_symbols,
-                            possible_symbols_text=self.edited_figure_possible_symbols_text)
-        self.task_figures_list.append(figure)
-        # Обнуление полей редактируемого оборота
-        self.edited_figure_key_symbols = []
-        self.edited_figure_possible_symbols = []
-        self.edited_figure_type = None
-        self.edited_figure_key_symbols_text = ''
-        self.edited_figure_possible_symbols_text = ''
-        self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-        self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
-        self.ui.figure_info_type.setText('Тип оборота')
+        self.ui.button_delete_last_figure.setEnabled(True)
+        self.ui.button_add_figure.setEnabled(True)
+        self.ui.button_add_possible_words.setEnabled(True)
+        self.ui.button_add_key_words.setEnabled(True)
 
-        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
-        # for i in self.task_figures_list:
-        #     print(i)
+    def add_figure_to_list(self):
+        if not (self.edited_figure_type is None or
+                self.edited_figure_key_symbols == [] or
+                self.edited_figure_possible_symbols == []):
+            figure = TaskFigure(type=self.edited_figure_type,
+                                key_symbols=self.edited_figure_key_symbols,
+                                key_symbols_text=self.edited_figure_key_symbols_text,
+                                possible_symbols=self.edited_figure_possible_symbols,
+                                possible_symbols_text=self.edited_figure_possible_symbols_text)
+            self.task_figures_list.append(figure)
+            # Обнуление полей редактируемого оборота
+            self.edited_figure_key_symbols = []
+            self.edited_figure_possible_symbols = []
+            self.edited_figure_type = None
+            self.edited_figure_key_symbols_text = ''
+            self.edited_figure_possible_symbols_text = ''
+            self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
+            self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
+            self.ui.figure_info_type.setText('Выберите тип оборота')
+
+            self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+
+            self.ui.button_add_figure.setEnabled(False)
+            self.ui.button_add_possible_words.setEnabled(False)
+            self.ui.button_add_key_words.setEnabled(False)
+            for i in self.task_figures_list:
+                print(i)
+        else:
+            self.ui.figures_counter_label.setText('Проверьте поля')
 
     def delete_last_figure(self):
-        deleted_figure = self.task_figures_list.pop()
-        start = deleted_figure.key_symbols[0]
-        end = deleted_figure.key_symbols[-1] + 1
-        print(self.task_figures_list, start, end)
-        cursor = self.ui.task_text.textCursor()
-        cursor.setPosition(start)
-        cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
-        char_format = cursor.charFormat()
-        char_format.setBackground(QtCore.Qt.white)
-        cursor.setCharFormat(char_format)
-        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+        try:
+            deleted_figure = self.task_figures_list.pop()
+            start = deleted_figure.key_symbols[0]
+            end = deleted_figure.key_symbols[-1] + 1
+            print(self.task_figures_list, start, end)
+            cursor = self.ui.task_text.textCursor()
+            cursor.setPosition(start)
+            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+            char_format = cursor.charFormat()
+            char_format.setBackground(QtCore.Qt.white)
+            cursor.setCharFormat(char_format)
+            self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+        except:
+            self.ui.figures_counter_label.setText('Ошибка удаления')
 
     def add_task(self):
         self.highlighted_task_text = self.ui.task_text.toHtml()
         self.task_name = self.ui.task_name_input.toPlainText()
-        task = Task(name=self.task_name,
-                    text=self.task_text,
-                    highlighted_text=self.highlighted_task_text,
-                    figures_list=self.task_figures_list)
-        # print(task)
-        packed_task = pickle.dumps(task)
-        query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
-        insert = (self.task_name, packed_task)
-        sql_stuff.insert_as_teacher(query_add_task, insert)
+        if self.task_name != '':
+            task = Task(name=self.task_name,
+                        text=self.task_text,
+                        highlighted_text=self.highlighted_task_text,
+                        figures_list=self.task_figures_list)
+            # print(task)
+            packed_task = pickle.dumps(task)
+            query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
+            insert = (self.task_name, packed_task)
+            sql_stuff.insert_as_teacher(query_add_task, insert)
+        else:
+            self.ui.figure_info_type.setText('Название')
 
 
 class CheckAnswersForm(QtWidgets.QDialog):
@@ -177,7 +194,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.list_of_answers.clear()
 
         query_get_answer_times = '''SELECT completion_date FROM answerbase
-        WHERE task_name=\'{}\' AND student_id={} ORDER BY completion_date'''.format(self.task_folder, self.student_folder)
+        WHERE task_name=\'{}\' AND student_id={} ORDER BY completion_date'''.format(self.task_folder,
+                                                                                    self.student_folder)
         times_tup = sql_stuff.get_answer_as_teacher(query_get_answer_times)
 
         for i in range(len(times_tup)):
@@ -211,10 +229,10 @@ class CheckAnswersForm(QtWidgets.QDialog):
                                   i.key_symbols_text + '\n'
         for i in not_right:
             found_wrong_text += i.figure_type + ' || ' + \
-                                  i.figure_text + '\n'
+                                i.figure_text + '\n'
         for i in not_found:
             not_found_text += i.type + ' || ' + \
-                                  i.key_symbols_text + '\n'
+                              i.key_symbols_text + '\n'
         self.ui.text_found_correct.setText(found_correct_text)
         self.ui.text_found_wrong.setText(found_wrong_text)
         self.ui.text_not_found.setText(not_found_text)
