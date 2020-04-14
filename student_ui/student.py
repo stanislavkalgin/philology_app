@@ -79,6 +79,7 @@ class answer_adding_window(QtWidgets.QDialog):
         packed_answer = pickle.dumps(answer)
         insert = (self.task_name, self.user_id, self.user_name, answer.time, packed_answer)
         sql_stuff.insert_as_student(query_save_answer, insert)
+        self.ui.label_chosen_figure_type.setText('Отправлено')
 
         print(answer)
 
