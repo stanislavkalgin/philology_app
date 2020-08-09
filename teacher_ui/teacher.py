@@ -48,16 +48,49 @@ class AddTaskForm(QtWidgets.QDialog):
         self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
         self.ui.button_delete_last_figure.clicked.connect(self.delete_last_figure)
 
+    def set_window_state(self):
+        """Проверки заполнения полей объекта задания и активация соответствующих кнопок.
+        Для каждой кнопки должны быть описаны сценарии ее активации с обязательным else.
+        Проверка при любом нажатии чтобы не было фигни"""
+        if self.task_text is not None:
+            self.ui.button_accept_text.setEnabled(False)
+        else:
+            self.ui.button_accept_text.setEnabled(True)
+
+        if self.task_text is not None:
+            self.ui.figures_buttons_list.setEnabled(True)
+        else:
+            self.ui.figures_buttons_list.setEnabled(False)
+
+        if self.task_text and self.edited_figure_type:
+            self.ui.button_add_key_words.setEnabled(True)
+            self.ui.button_add_possible_words.setEnabled(True)
+        else:
+            self.ui.button_add_key_words.setEnabled(False)
+            self.ui.button_add_possible_words.setEnabled(False)
+
+        if len(self.task_figures_list) > 0:
+            self.ui.button_delete_last_figure.setEnabled(True)
+        else:
+            self.ui.button_delete_last_figure.setEnabled(False)
+
+        if self.edited_figure_type and self.edited_figure_key_symbols and self.edited_figure_possible_symbols:
+            self.ui.button_add_figure.setEnabled(True)
+        else:
+            self.ui.button_add_figure.setEnabled(False)
+
+        if self.task_text and self.task_figures_list:
+            self.ui.button_add_task.setEnabled(True)
+        else:
+            self.ui.button_add_task.setEnabled(False)
+
     def accept_text(self):
         self.task_text = self.ui.task_text.toHtml()
         self.ui.task_text.setReadOnly(1)
         # UI activation
-        self.ui.figures_buttons_list.setEnabled(True)
-        self.ui.button_add_task.setEnabled(True)
         self.ui.task_name_input.setEnabled(True)
         self.ui.figures_counter_label.setEnabled(True)
-
-        self.ui.button_accept_text.setEnabled(False)
+        self.set_window_state()
 
     def add_key_words(self):
         cursor = self.ui.task_text.textCursor()
@@ -71,6 +104,7 @@ class AddTaskForm(QtWidgets.QDialog):
         char_format = cursor.charFormat()
         char_format.setBackground(self.possible_figures[self.edited_figure_type])
         cursor.setCharFormat(char_format)
+        self.set_window_state()
 
     def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
         cursor = self.ui.task_text.textCursor()
@@ -80,21 +114,18 @@ class AddTaskForm(QtWidgets.QDialog):
         self.edited_figure_possible_symbols_text = cursor.selectedText()
         # print(sorted(self.edited_figure_possible_symbols))
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
+        self.set_window_state()
 
     def set_figure_type(self, item):
         self.edited_figure_type = item.text()
         self.ui.figure_info_type.setText(self.edited_figure_type)
-
-        self.ui.button_delete_last_figure.setEnabled(True)
-        self.ui.button_add_figure.setEnabled(True)
-        self.ui.button_add_possible_words.setEnabled(True)
-        self.ui.button_add_key_words.setEnabled(True)
+        self.set_window_state()
 
     def add_figure_to_list(self):
         if not (self.edited_figure_type is None or
                 self.edited_figure_key_symbols == [] or
                 self.edited_figure_possible_symbols == []):
-            figure = TaskFigure(type=self.edited_figure_type,
+            figure = TaskFigure(_type=self.edited_figure_type,
                                 key_symbols=self.edited_figure_key_symbols,
                                 key_symbols_text=self.edited_figure_key_symbols_text,
                                 possible_symbols=self.edited_figure_possible_symbols,
@@ -112,13 +143,11 @@ class AddTaskForm(QtWidgets.QDialog):
 
             self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
 
-            self.ui.button_add_figure.setEnabled(False)
-            self.ui.button_add_possible_words.setEnabled(False)
-            self.ui.button_add_key_words.setEnabled(False)
             for i in self.task_figures_list:
                 print(i)
         else:
             self.ui.figures_counter_label.setText('Проверьте поля')
+        self.set_window_state()
 
     def delete_last_figure(self):
         try:
@@ -133,24 +162,31 @@ class AddTaskForm(QtWidgets.QDialog):
             char_format.setBackground(QtCore.Qt.white)
             cursor.setCharFormat(char_format)
             self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+            self.set_window_state()
         except:
             self.ui.figures_counter_label.setText('Ошибка удаления')
+            self.set_window_state()
 
     def add_task(self):
         self.highlighted_task_text = self.ui.task_text.toHtml()
         self.task_name = self.ui.task_name_input.toPlainText()
-        if self.task_name != '':
-            task = Task(name=self.task_name,
-                        text=self.task_text,
-                        highlighted_text=self.highlighted_task_text,
-                        figures_list=self.task_figures_list)
-            # print(task)
-            packed_task = pickle.dumps(task)
-            query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
-            insert = (self.task_name, packed_task)
-            sql_stuff.insert_as_teacher(query_add_task, insert)
-        else:
+        if not self.task_name:
             self.ui.figure_info_type.setText('Название')
+        else:
+            try:
+                task = Task(name=self.task_name,
+                            text=self.task_text,
+                            highlighted_text=self.highlighted_task_text,
+                            figures_list=self.task_figures_list)
+                # print(task)
+                packed_task = pickle.dumps(task)
+                query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
+                insert = (self.task_name, packed_task)
+                sql_stuff.insert_as_teacher(query_add_task, insert)
+                self.ui.figure_info_type.setText('Задание отправлено')
+            except:
+                self.ui.figure_info_type.setText('Ошибка отправки задания ')
+        self.set_window_state()
 
 
 class CheckAnswersForm(QtWidgets.QDialog):
@@ -225,13 +261,13 @@ class CheckAnswersForm(QtWidgets.QDialog):
 
         found_correct_text, found_wrong_text, not_found_text = '', '', ''
         for i in correct:
-            found_correct_text += i.type + ' || ' + \
+            found_correct_text += i.figure_type + ' || ' + \
                                   i.key_symbols_text + '\n'
         for i in not_right:
             found_wrong_text += i.figure_type + ' || ' + \
                                 i.figure_text + '\n'
         for i in not_found:
-            not_found_text += i.type + ' || ' + \
+            not_found_text += i.figure_type + ' || ' + \
                               i.key_symbols_text + '\n'
         self.ui.text_found_correct.setText(found_correct_text)
         self.ui.text_found_wrong.setText(found_wrong_text)

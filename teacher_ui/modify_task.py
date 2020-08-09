@@ -96,7 +96,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.ui.list_widget_of_figures.clear()
         for i in range(len(self.task_figures_list)):
             figure_item = (str(i) + ' ' +
-                           self.task_figures_list[i].type + '\n' +
+                           self.task_figures_list[i].figure_type + '\n' +
                            self.task_figures_list[i].key_symbols_text[:50])
             self.ui.list_widget_of_figures.addItem(figure_item)
 
@@ -106,7 +106,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.edited_figure_number = number
         self.ui.figure_info_key_words.setText(self.task_figures_list[number].key_symbols_text)
         self.ui.figure_info_possible_words.setText(self.task_figures_list[number].possible_symbols_text)
-        self.ui.figure_info_type.setText(self.task_figures_list[number].type)
+        self.ui.figure_info_type.setText(self.task_figures_list[number].figure_type)
         # todo диапазон выделения показывать
         # todo заглушение всего кроме удаления
         self.edited_figure_key_symbols = self.task_figures_list[number].key_symbols[:]
@@ -125,7 +125,7 @@ class ModifyTaskForm(QtWidgets.QDialog):
                 self.ui.figure_info_key_words.setText(self.task_figures_list[self.edited_figure_number].key_symbols_text)
                 self.ui.figure_info_possible_words.setText(
                     self.task_figures_list[self.edited_figure_number].possible_symbols_text)
-                self.ui.figure_info_type.setText(self.task_figures_list[self.edited_figure_number].type)
+                self.ui.figure_info_type.setText(self.task_figures_list[self.edited_figure_number].figure_type)
                 break
 
     def delete_figure(self):

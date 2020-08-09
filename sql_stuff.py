@@ -52,7 +52,7 @@ def get_answer_as_teacher(query):
 
 def get_new_id():
     con, cur = setup_connection_as_teacher()
-    cur.execute('SELECT MAX(user_id) FROM users')
+    cur.execute('SELECT COALESCE(MAX(user_id), 0) FROM users')
     current_top_id = cur.fetchall()
     cur.close()
     con.close()

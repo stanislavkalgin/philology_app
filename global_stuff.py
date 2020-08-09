@@ -14,16 +14,16 @@ possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt
 class TaskFigure:
     global possible_figures
 
-    def __init__(self, type, key_symbols, key_symbols_text, possible_symbols, possible_symbols_text):
-        self.type = type  # todo refactor as figure_type
+    def __init__(self, _type, key_symbols, key_symbols_text, possible_symbols, possible_symbols_text):
+        self.figure_type = _type
         self.key_symbols = key_symbols
-        self.key_symbols_text = key_symbols_text  # для отображения при проверке и других обращениях
+        self.key_symbols_text = key_symbols_text
         self.possible_symbols = possible_symbols
-        self.possible_symbols_text = possible_symbols_text  # для отображения при проверке и других обращениях
+        self.possible_symbols_text = possible_symbols_text
 
-    def __str__(self):  # отладочное
+    def __str__(self):
         return ('[TaskFigure: type - %s, key symbols - %s, possible symbols from %s to %s]'
-                % (self.type, self.key_symbols,
+                % (self.figure_type, self.key_symbols,
                    self.possible_symbols[0], self.possible_symbols[-1]))
 
 
@@ -73,7 +73,7 @@ class AnswerFigure:
                    self.symbols_range[0], self.symbols_range[-1]))
 
     def check_figure(self, task_figure):
-        if task_figure.type == self.figure_type:  # Тип
+        if task_figure.figure_type == self.figure_type:  # Тип
             if (min(task_figure.key_symbols) >= self.symbols_range[0] and  # todo отслеживать возможность проблем
                     max(task_figure.key_symbols) <= self.symbols_range[-1]):
                 if (task_figure.possible_symbols[0] <= self.symbols_range[0] and
@@ -104,7 +104,7 @@ class Answer:
             counter += 1
         return n
 
-    def answer_checker(self, task):  # O(n*m), возможно упростить, если нужно, принимает объект задания
+    def answer_checker(self, task):
         task_figures = task.figuresList[:]
         answer_figures = self.answer_figures_list[:]
         correct, not_found = [], []
