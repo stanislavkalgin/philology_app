@@ -2,6 +2,7 @@ import pickle
 from global_stuff import possible_figures, Task, TaskFigure, \
     Answer, AnswerFigure
 from task_modify_form import Ui_Dialog as Ui_task_modify_form
+from teacher import AddTaskForm
 from deletion_dialog import Ui_deletion_dialog
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys

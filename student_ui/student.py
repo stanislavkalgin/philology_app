@@ -52,16 +52,13 @@ class answer_adding_window(QtWidgets.QDialog):
         end = cursor.selectionEnd()
         self.figure_symbol_range = [start, end-1]
         self.figure_text = cursor.selectedText()
-        print(end - start)
 
         figure = AnswerFigure(figure_type=self.figure_type,
                               symbols_range=self.figure_symbol_range,
                               figure_text=self.figure_text)
         self.figures_list.append(figure)
-        # self.figures_to_show += '%s || %s \n' % (possible_figures[self.figure_type], self.figure_text)
         self.refresh_figures_to_show()
         self.ui.figures_browser.setText(self.figures_to_show)
-        print(figure)
 
         char_format = cursor.charFormat()
         char_format.setBackground(self.possible_figures[self.figure_type])

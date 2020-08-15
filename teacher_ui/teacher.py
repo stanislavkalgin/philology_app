@@ -14,9 +14,9 @@ task_text_window = None  # Костылёк (глобальная перемен
 
 
 class AddTaskForm(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ui=Ui_Dialog):
         super().__init__(parent)
-        self.ui = Ui_Dialog()
+        self.ui = ui()
         self.ui.setupUi(self)
         self.possible_figures = possible_figures.copy()
 
@@ -152,9 +152,8 @@ class AddTaskForm(QtWidgets.QDialog):
     def delete_last_figure(self):
         try:
             deleted_figure = self.task_figures_list.pop()
-            start = deleted_figure.key_symbols[0]
-            end = deleted_figure.key_symbols[-1] + 1
-            print(self.task_figures_list, start, end)
+            start = min(deleted_figure.key_symbols)
+            end = max(deleted_figure.key_symbols) + 1
             cursor = self.ui.task_text.textCursor()
             cursor.setPosition(start)
             cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
@@ -163,7 +162,7 @@ class AddTaskForm(QtWidgets.QDialog):
             cursor.setCharFormat(char_format)
             self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
             self.set_window_state()
-        except:
+        except Exception as exc:
             self.ui.figures_counter_label.setText('Ошибка удаления')
             self.set_window_state()
 
@@ -184,7 +183,8 @@ class AddTaskForm(QtWidgets.QDialog):
                 insert = (self.task_name, packed_task)
                 sql_stuff.insert_as_teacher(query_add_task, insert)
                 self.ui.figure_info_type.setText('Задание отправлено')
-            except:
+                self.ui.button_add_task.setEnabled(False)
+            except Exception as exc:
                 self.ui.figure_info_type.setText('Ошибка отправки задания ')
         self.set_window_state()
 
