@@ -6,6 +6,10 @@ from teacher import AddTaskForm, CheckAnswersForm
 from modify_task import ModifyTaskForm
 import sql_stuff
 
+# TODO хеширование отправляемых паролей
+# TODO Проверка уникальности имени задания
+# TODO Каскадное удаление и переименовывание ответов на задания
+
 
 class entrance_window(QtWidgets.QDialog):
     def __init__(self):
@@ -54,10 +58,7 @@ class entrance_window(QtWidgets.QDialog):
         login = self.ui.reg_teacher_login_input.text()
         password_1 = self.ui.reg_teacher_password_1.text()
         password_2 = self.ui.reg_teacher_password_2.text()
-        if (personal_name != "" and
-                login != "" and
-                password_1 != "" and
-                password_2 != ""):
+        if personal_name and login and password_1 and password_2:
             if sql_stuff.check_login_is_available(login):
                 if password_1 == password_2:
                     query_new_teacher = '''INSERT INTO users(`user_id`, `login`, `password`, `personal_name`, `rights`) 

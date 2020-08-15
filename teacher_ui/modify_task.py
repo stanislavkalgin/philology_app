@@ -107,7 +107,6 @@ class ModifyTaskForm(AddTaskForm):
                         text=self.task_text,
                         highlighted_text=self.highlighted_task_text,
                         figures_list=self.task_figures_list)
-        # print(task)
         packed_task = pickle.dumps(new_task)
         if self.task_name == new_task_name:
             query_add_task = '''UPDATE `taskbase` SET `task_object`=%s WHERE `task_name`=%s'''
@@ -115,7 +114,11 @@ class ModifyTaskForm(AddTaskForm):
         else:
             query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
             insert = (new_task_name, packed_task)
-        sql_stuff.insert_as_teacher(query_add_task, insert)
+        try:
+            sql_stuff.insert_as_teacher(query_add_task, insert)
+            self.ui.figure_info_type.setText('Задание отредактировано')
+        except Exception as exc:
+            self.ui.figure_info_type.setText('Ошибка базы данных')
 
     def delete_task(self):
         dialog = DeletionDialog(task_name=self.task_name)

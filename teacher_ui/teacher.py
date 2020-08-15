@@ -241,7 +241,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         for i in range(len(times_tup)):
             self.ui.list_of_answers.addItem(times_tup[i][0])
 
-    def check_answer(self, item):
+    def check_answer(self, item): # todo перенести запрос задания на уровень выше для избежания повторений
         self.current_answer = item.text()
         query_get_answer = '''SELECT answer_object FROM answerbase WHERE task_name=\'{}\' AND student_id={} 
         AND completion_date=\'{}\''''.format(self.task_folder, self.student_folder, self.current_answer)
@@ -278,6 +278,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.text_not_found.setText(not_found_text)
 
     def show_task_text(self):
+        if not self.current_answer:
+            return
         query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
         task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
         packed_task = task_tup[0][0]
@@ -288,6 +290,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.task_text_windows[-1].open()
 
     def show_answer_text(self):
+        if not self.current_answer:
+            return
         self.task_text_windows.append(TextWindow(text=self.current_answer_highlighted_text))
         self.task_text_windows[-1].open()
 
