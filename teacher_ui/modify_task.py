@@ -1,43 +1,26 @@
 import pickle
-from global_stuff import possible_figures, Task, TaskFigure, \
-    Answer, AnswerFigure
+from global_stuff import Task
 from task_modify_form import Ui_Dialog as Ui_task_modify_form
 from teacher import AddTaskForm
 from deletion_dialog import Ui_deletion_dialog
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets
 import sys
 import sql_stuff
 
 
-# Возможно стоило наследовать от формы добавления задания, но когда это пришло в голову, скопировать было уже проще
-
-class ModifyTaskForm(QtWidgets.QDialog):
+class ModifyTaskForm(AddTaskForm):
     def __init__(self, task):
-        super().__init__()
-        self.ui = Ui_task_modify_form()
-        self.ui.setupUi(self)
-        self.possible_figures = possible_figures.copy()
-        
-        keys = []
-        for i in self.possible_figures.keys():
-            keys.append(i)
-        keys.sort()
-        for i in range(len(keys)):
-            self.ui.figures_buttons_list.addItem(keys[i])
-            self.ui.figures_buttons_list.item(i).setForeground(self.possible_figures[keys[i]])
+        super().__init__(ui=Ui_task_modify_form)
 
+        # Здесь блок полей создаваемого задания берется из объекта
         self.task_text = task.text
         self.task_name = task.name
         self.highlighted_task_text = task.highlighted_text
         self.task_figures_list = task.figuresList
-        # блок полей создаваемого оборота, все должно быть обнулено после каждого добавления оборота
-        self.logic_figure_to_delete_is_chosen = False
-        self.edited_figure_number = None
-        self.edited_figure_key_symbols = []
-        self.edited_figure_possible_symbols = []
-        self.edited_figure_type = None
-        self.edited_figure_key_symbols_text = ''
-        self.edited_figure_possible_symbols_text = ''
+
+        # Переменные состояния для удаления оборотов, todo сделать умнее и лучше
+        self.figure_to_delete_is_chosen = False
+        self.deletion_figure_number = None
 
         # Загрузка полей изменяемого задания
         self.ui.task_text.setText(self.highlighted_task_text)
@@ -45,52 +28,25 @@ class ModifyTaskForm(QtWidgets.QDialog):
         self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
         self.refresh_widget_list_of_figures()
 
-        # Функционал окна
-        self.ui.button_add_key_words.clicked.connect(self.add_key_words)
-        self.ui.button_add_possible_words.clicked.connect(self.add_possible_words)
-        self.ui.button_add_figure.clicked.connect(self.add_figure_to_list)
-        self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
+        # Расширение функционала окна
         self.ui.list_widget_of_figures.itemClicked.connect(self.choose_figure_from_list)
         self.ui.button_delete_figure.clicked.connect(self.delete_figure)
         self.ui.button_choose_figure.clicked.connect(self.choose_figure_from_cursor)
         self.ui.button_modify_task.clicked.connect(self.modify_task)
         self.ui.button_delete_task.clicked.connect(self.delete_task)
 
-    def add_key_words(self):
-        cursor = self.ui.task_text.textCursor()
-        start = cursor.selectionStart()
-        end = cursor.selectionEnd()
-        self.edited_figure_key_symbols += range(start, end)  # todo переделать на end + 1 и исправить все что за этим следует
-        self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
-        # print(sorted(self.edited_figure_key_symbols))
-        self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-        char_format = cursor.charFormat()
-        char_format.setBackground(possible_figures[self.edited_figure_type])
-        cursor.setCharFormat(char_format)
+        self.set_window_state()
 
-    def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
-        cursor = self.ui.task_text.textCursor()
-        start = cursor.selectionStart()
-        end = cursor.selectionEnd()
-        self.edited_figure_possible_symbols = [start, end - 1]  # see if causes problems
-        self.edited_figure_possible_symbols_text = cursor.selectedText()
-        # print(sorted(self.edited_figure_possible_symbols))
-        self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
+    def set_window_state(self):
+        self._set_window_state()
 
-    def set_figure_type(self, item):
-        self.edited_figure_type = item.text()
-        self.ui.figure_info_type.setText(self.edited_figure_type)
+        if self.figure_to_delete_is_chosen:
+            self.ui.button_delete_figure.setEnabled(True)
+        else:
+            self.ui.button_delete_figure.setEnabled(False)
 
     def add_figure_to_list(self):
-        figure = TaskFigure(type=self.edited_figure_type,
-                            key_symbols=self.edited_figure_key_symbols,
-                            key_symbols_text=self.edited_figure_key_symbols_text,
-                            possible_symbols=self.edited_figure_possible_symbols,
-                            possible_symbols_text=self.edited_figure_possible_symbols_text)
-        self.task_figures_list.append(figure)
-        self.set_default_figure_fields()
-
-        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+        AddTaskForm.add_figure_to_list(self)
         self.refresh_widget_list_of_figures()
 
     def refresh_widget_list_of_figures(self):
@@ -103,14 +59,15 @@ class ModifyTaskForm(QtWidgets.QDialog):
 
     def choose_figure_from_list(self, item):
         number = int(item.text().split()[0])
-        self.logic_figure_to_delete_is_chosen = True
-        self.edited_figure_number = number
+        self.figure_to_delete_is_chosen = True
+        self.deletion_figure_number = number
         self.ui.figure_info_key_words.setText(self.task_figures_list[number].key_symbols_text)
         self.ui.figure_info_possible_words.setText(self.task_figures_list[number].possible_symbols_text)
         self.ui.figure_info_type.setText(self.task_figures_list[number].figure_type)
         # todo диапазон выделения показывать
         # todo заглушение всего кроме удаления
         self.edited_figure_key_symbols = self.task_figures_list[number].key_symbols[:]
+        self.set_window_state()
 
     def choose_figure_from_cursor(self):
         cursor = self.ui.task_text.textCursor()
@@ -121,43 +78,27 @@ class ModifyTaskForm(QtWidgets.QDialog):
             figures_dict.update({symbols_range: i})
         for key in figures_dict.keys():
             if position in key:
-                self.edited_figure_number = figures_dict[key]
-                self.logic_figure_to_delete_is_chosen = True
-                self.ui.figure_info_key_words.setText(self.task_figures_list[self.edited_figure_number].key_symbols_text)
+                self.deletion_figure_number = figures_dict[key]
+                self.figure_to_delete_is_chosen = True
+                self.ui.figure_info_key_words.setText(self.task_figures_list[self.deletion_figure_number].key_symbols_text)
                 self.ui.figure_info_possible_words.setText(
-                    self.task_figures_list[self.edited_figure_number].possible_symbols_text)
-                self.ui.figure_info_type.setText(self.task_figures_list[self.edited_figure_number].figure_type)
+                    self.task_figures_list[self.deletion_figure_number].possible_symbols_text)
+                self.ui.figure_info_type.setText(self.task_figures_list[self.deletion_figure_number].figure_type)
                 break
+        self.set_window_state()
 
     def delete_figure(self):
-        if self.logic_figure_to_delete_is_chosen:
-            deleted_figure = self.task_figures_list.pop(self.edited_figure_number)
-            start = deleted_figure.key_symbols[0]
-            end = deleted_figure.key_symbols[-1] + 1
-            # print(self.task_figures_list, start, end)
-            cursor = self.ui.task_text.textCursor()
-            cursor.setPosition(start)
-            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
-            char_format = cursor.charFormat()
-            char_format.setBackground(QtCore.Qt.white)
-            cursor.setCharFormat(char_format)
-            self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
-
+        if self.figure_to_delete_is_chosen:
+            deleted_figure = self.task_figures_list.pop(self.deletion_figure_number)
+            self.whiten_text_from_figure(deleted_figure)
             self.refresh_widget_list_of_figures()
             self.set_default_figure_fields()
+        self.set_window_state()
 
     def set_default_figure_fields(self):
-        self.logic_figure_to_delete_is_chosen = False
-        self.edited_figure_number = None
-        self.edited_figure_key_symbols = []
-        self.edited_figure_possible_symbols = []
-        self.edited_figure_type = None
-        self.edited_figure_key_symbols_text = ''
-        self.edited_figure_possible_symbols_text = ''
-
-        self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-        self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
-        self.ui.figure_info_type.setText('Тип оборота')
+        AddTaskForm.set_default_figure_fields(self)
+        self.figure_to_delete_is_chosen = False
+        self.deletion_figure_number = None
 
     def modify_task(self):
         self.highlighted_task_text = self.ui.task_text.toHtml()

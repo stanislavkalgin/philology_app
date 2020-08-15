@@ -1,16 +1,13 @@
 import pickle
-from global_stuff import possible_figures, Task, TaskFigure, \
-    Answer, AnswerFigure
+from global_stuff import possible_figures, Task, TaskFigure
 from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
-from task_modify_form import Ui_Dialog as Ui_task_modify_form
 from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
 from PyQt5 import QtWidgets, QtCore, QtGui
 import sys
 import sql_stuff
 
 # TODO добавить везде предупреждения о потенциальном исключении
-task_text_window = None  # Костылёк (глобальная переменная)?
 
 
 class AddTaskForm(QtWidgets.QDialog):
@@ -36,27 +33,26 @@ class AddTaskForm(QtWidgets.QDialog):
         # блок полей создаваемого оборота, все должно быть обнулено после каждого добавления оборота
         self.edited_figure_key_symbols = []
         self.edited_figure_possible_symbols = []
+        self.edited_figure_type = None
         self.edited_figure_key_symbols_text = ''
         self.edited_figure_possible_symbols_text = ''
-        self.edited_figure_type = None
         # функционал окна
-        self.ui.button_accept_text.clicked.connect(self.accept_text)
         self.ui.button_add_key_words.clicked.connect(self.add_key_words)
         self.ui.button_add_possible_words.clicked.connect(self.add_possible_words)
         self.ui.button_add_figure.clicked.connect(self.add_figure_to_list)
-        self.ui.button_add_task.clicked.connect(self.add_task)
         self.ui.figures_buttons_list.itemClicked.connect(self.set_figure_type)
+        if ui is Ui_Dialog:
+            self.after_init()
+
+    def after_init(self):
+        self.ui.button_accept_text.clicked.connect(self.accept_text)
+        self.ui.button_add_task.clicked.connect(self.add_task)
         self.ui.button_delete_last_figure.clicked.connect(self.delete_last_figure)
 
-    def set_window_state(self):
-        """Проверки заполнения полей объекта задания и активация соответствующих кнопок.
-        Для каждой кнопки должны быть описаны сценарии ее активации с обязательным else.
-        Проверка при любом нажатии чтобы не было фигни"""
-        if self.task_text is not None:
-            self.ui.button_accept_text.setEnabled(False)
-        else:
-            self.ui.button_accept_text.setEnabled(True)
-
+    def _set_window_state(self):
+        """Управляет: figures_buttons_list, button_add_key_words,
+         button_add_possible_words, button_add_figure
+         Симуляция метода суперкласса, однажды можно отрефакторить"""
         if self.task_text is not None:
             self.ui.figures_buttons_list.setEnabled(True)
         else:
@@ -69,20 +65,42 @@ class AddTaskForm(QtWidgets.QDialog):
             self.ui.button_add_key_words.setEnabled(False)
             self.ui.button_add_possible_words.setEnabled(False)
 
-        if len(self.task_figures_list) > 0:
-            self.ui.button_delete_last_figure.setEnabled(True)
-        else:
-            self.ui.button_delete_last_figure.setEnabled(False)
-
         if self.edited_figure_type and self.edited_figure_key_symbols and self.edited_figure_possible_symbols:
             self.ui.button_add_figure.setEnabled(True)
         else:
             self.ui.button_add_figure.setEnabled(False)
 
+    def set_window_state(self):
+        """Проверки заполнения полей объекта задания и активация соответствующих кнопок.
+        Для каждой кнопки должны быть описаны сценарии ее активации с обязательным else.
+        Проверка при любом нажатии чтобы не было фигни"""
+        self._set_window_state()
+        if self.task_text is not None:
+            self.ui.button_accept_text.setEnabled(False)
+        else:
+            self.ui.button_accept_text.setEnabled(True)
+
+        if len(self.task_figures_list) > 0:
+            self.ui.button_delete_last_figure.setEnabled(True)
+        else:
+            self.ui.button_delete_last_figure.setEnabled(False)
+
         if self.task_text and self.task_figures_list:
             self.ui.button_add_task.setEnabled(True)
         else:
             self.ui.button_add_task.setEnabled(False)
+
+    def set_default_figure_fields(self):
+        self.edited_figure_key_symbols = []
+        self.edited_figure_possible_symbols = []
+        self.edited_figure_type = None
+        self.edited_figure_key_symbols_text = ''
+        self.edited_figure_possible_symbols_text = ''
+
+        self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
+        self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
+        self.ui.figure_info_type.setText('Выберите тип оборота')
+        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
 
     def accept_text(self):
         self.task_text = self.ui.task_text.toHtml()
@@ -112,7 +130,6 @@ class AddTaskForm(QtWidgets.QDialog):
         end = cursor.selectionEnd()
         self.edited_figure_possible_symbols = [start, end - 1]  # see if causes problems
         self.edited_figure_possible_symbols_text = cursor.selectedText()
-        # print(sorted(self.edited_figure_possible_symbols))
         self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
         self.set_window_state()
 
@@ -122,45 +139,31 @@ class AddTaskForm(QtWidgets.QDialog):
         self.set_window_state()
 
     def add_figure_to_list(self):
-        if not (self.edited_figure_type is None or
-                self.edited_figure_key_symbols == [] or
-                self.edited_figure_possible_symbols == []):
-            figure = TaskFigure(_type=self.edited_figure_type,
-                                key_symbols=self.edited_figure_key_symbols,
-                                key_symbols_text=self.edited_figure_key_symbols_text,
-                                possible_symbols=self.edited_figure_possible_symbols,
-                                possible_symbols_text=self.edited_figure_possible_symbols_text)
-            self.task_figures_list.append(figure)
-            # Обнуление полей редактируемого оборота
-            self.edited_figure_key_symbols = []
-            self.edited_figure_possible_symbols = []
-            self.edited_figure_type = None
-            self.edited_figure_key_symbols_text = ''
-            self.edited_figure_possible_symbols_text = ''
-            self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-            self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
-            self.ui.figure_info_type.setText('Выберите тип оборота')
+        figure = TaskFigure(_type=self.edited_figure_type,
+                            key_symbols=self.edited_figure_key_symbols,
+                            key_symbols_text=self.edited_figure_key_symbols_text,
+                            possible_symbols=self.edited_figure_possible_symbols,
+                            possible_symbols_text=self.edited_figure_possible_symbols_text)
+        self.task_figures_list.append(figure)
+        self.set_default_figure_fields()
 
-            self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
-
-            for i in self.task_figures_list:
-                print(i)
-        else:
-            self.ui.figures_counter_label.setText('Проверьте поля')
         self.set_window_state()
+
+    def whiten_text_from_figure(self, deleted_figure):
+        start = min(deleted_figure.key_symbols)
+        end = max(deleted_figure.key_symbols) + 1
+        cursor = self.ui.task_text.textCursor()
+        cursor.setPosition(start)
+        cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+        char_format = cursor.charFormat()
+        char_format.setBackground(QtCore.Qt.white)
+        cursor.setCharFormat(char_format)
+        self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
 
     def delete_last_figure(self):
         try:
             deleted_figure = self.task_figures_list.pop()
-            start = min(deleted_figure.key_symbols)
-            end = max(deleted_figure.key_symbols) + 1
-            cursor = self.ui.task_text.textCursor()
-            cursor.setPosition(start)
-            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
-            char_format = cursor.charFormat()
-            char_format.setBackground(QtCore.Qt.white)
-            cursor.setCharFormat(char_format)
-            self.ui.figures_counter_label.setText('Оборотов добавлено\n{}'.format(len(self.task_figures_list)))
+            self.whiten_text_from_figure(deleted_figure)
             self.set_window_state()
         except Exception as exc:
             self.ui.figures_counter_label.setText('Ошибка удаления')
@@ -194,6 +197,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         super().__init__()
         self.ui = Ui_check_answers_window()
         self.ui.setupUi(self)
+        self.task_text_windows = []
 
         query_get_task_names = '''SELECT DISTINCT task_name FROM answerbase ORDER BY task_name'''
         tasks_tup = sql_stuff.get_answer_as_teacher(query_get_task_names)
@@ -280,13 +284,12 @@ class CheckAnswersForm(QtWidgets.QDialog):
         task = pickle.loads(packed_task)
         task_text = task.highlighted_text
 
-        global task_text_window
-        task_text_window = TextWindow(text=task_text)
-        task_text_window.open()
+        self.task_text_windows.append(TextWindow(text=task_text))
+        self.task_text_windows[-1].open()
 
     def show_answer_text(self):
-        text_window = TextWindow(text=self.current_answer_highlighted_text)
-        text_window.exec()
+        self.task_text_windows.append(TextWindow(text=self.current_answer_highlighted_text))
+        self.task_text_windows[-1].open()
 
 
 class TextWindow(QtWidgets.QDialog):
