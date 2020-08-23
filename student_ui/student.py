@@ -6,6 +6,8 @@ import pickle
 from global_stuff import possible_figures, Answer, AnswerFigure
 
 
+# todo управление состоянием, если считается нужным, сохранение логов и файла объекта ответа
+
 class answer_adding_window(QtWidgets.QDialog):
     def __init__(self, user_id=None, user_name=None, task_name=None, parent=None):
         super().__init__(parent)

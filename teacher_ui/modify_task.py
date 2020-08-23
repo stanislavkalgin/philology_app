@@ -119,6 +119,9 @@ class ModifyTaskForm(AddTaskForm):
             self.ui.figure_info_type.setText('Задание отредактировано')
         except Exception as exc:
             self.ui.figure_info_type.setText('Ошибка базы данных')
+            filename = (new_task_name or packed_task) + '.txt'
+            with open(filename, 'a') as task_object_file:
+                task_object_file.write(str(packed_task))
 
     def delete_task(self):
         dialog = DeletionDialog(task_name=self.task_name)

@@ -2,16 +2,17 @@ from PyQt5 import QtWidgets
 from entrance_form_teacher import Ui_entrance_form
 import pickle
 import sys
+import traceback
+from datetime import datetime
 from teacher import AddTaskForm, CheckAnswersForm
 from modify_task import ModifyTaskForm
 import sql_stuff
 
 # TODO хеширование отправляемых паролей
 # TODO Проверка уникальности имени задания
-# TODO Каскадное удаление и переименовывание ответов на задания
 
 
-class entrance_window(QtWidgets.QDialog):
+class EntranceWindow(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.ui = Ui_entrance_form()
@@ -108,8 +109,16 @@ class entrance_window(QtWidgets.QDialog):
         edit_window.exec()
 
 
+def excepthook(exc_type, exc_value, exc_tb):
+    tb = str(datetime.now()) + "".join(traceback.format_exception(exc_type, exc_value, exc_tb)) + "\n"
+    with open('log.txt', 'a') as log_file:
+        log_file.write(tb)
+    QtWidgets.QApplication.quit()
+
+
+sys.excepthook = excepthook
 app = QtWidgets.QApplication([])
-application = entrance_window()
+application = EntranceWindow()
 application.show()
 
 sys.exit(app.exec())

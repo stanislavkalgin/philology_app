@@ -114,23 +114,24 @@ class AddTaskForm(QtWidgets.QDialog):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.edited_figure_key_symbols += range(start,
-                                                end)  # todo переделать на end + 1 и исправить все что за этим следует
-        self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
-        # print(sorted(self.edited_figure_key_symbols))
-        self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-        char_format = cursor.charFormat()
-        char_format.setBackground(self.possible_figures[self.edited_figure_type])
-        cursor.setCharFormat(char_format)
+        if end - start != 0:
+            self.edited_figure_key_symbols += range(start, end)  # todo переделать на end + 1 и исправить все что за этим следует
+            self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
+            # print(sorted(self.edited_figure_key_symbols))
+            self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
+            char_format = cursor.charFormat()
+            char_format.setBackground(self.possible_figures[self.edited_figure_type])
+            cursor.setCharFormat(char_format)
         self.set_window_state()
 
     def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.edited_figure_possible_symbols = [start, end - 1]  # see if causes problems
-        self.edited_figure_possible_symbols_text = cursor.selectedText()
-        self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
+        if end - start != 0:
+            self.edited_figure_possible_symbols = [start, end - 1]  # see if causes problems
+            self.edited_figure_possible_symbols_text = cursor.selectedText()
+            self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text)
         self.set_window_state()
 
     def set_figure_type(self, item):
@@ -241,7 +242,7 @@ class CheckAnswersForm(QtWidgets.QDialog):
         for i in range(len(times_tup)):
             self.ui.list_of_answers.addItem(times_tup[i][0])
 
-    def check_answer(self, item): # todo перенести запрос задания на уровень выше для избежания повторений
+    def check_answer(self, item):  # todo перенести запрос задания на уровень выше для избежания повторений
         self.current_answer = item.text()
         query_get_answer = '''SELECT answer_object FROM answerbase WHERE task_name=\'{}\' AND student_id={} 
         AND completion_date=\'{}\''''.format(self.task_folder, self.student_folder, self.current_answer)
@@ -302,6 +303,13 @@ class TextWindow(QtWidgets.QDialog):
         self.ui = Ui_text_window()
         self.ui.setupUi(self)
         self.ui.text.setText(text)
+        self.ui.text.cursorPositionChanged.connect(self.show_type)
+
+    def show_type(self):
+        """Способ реализовать отображение типа оборота без раскрашивания в цвета"""
+        cursor = self.ui.text.textCursor()
+        start = cursor.selectionStart()
+        print(start)
 
 
 if __name__ == '__main__':
