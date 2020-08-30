@@ -52,22 +52,23 @@ class answer_adding_window(QtWidgets.QDialog):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
-        self.figure_symbol_range = [start, end-1]
-        self.figure_text = cursor.selectedText()
+        if end - start != 0:
+            self.figure_symbol_range = [start, end - 1]
+            self.figure_text = cursor.selectedText()
 
-        figure = AnswerFigure(figure_type=self.figure_type,
-                              symbols_range=self.figure_symbol_range,
-                              figure_text=self.figure_text)
-        self.figures_list.append(figure)
-        self.refresh_figures_to_show()
-        self.ui.figures_browser.setText(self.figures_to_show)
+            figure = AnswerFigure(figure_type=self.figure_type,
+                                  symbols_range=self.figure_symbol_range,
+                                  figure_text=self.figure_text)
+            self.figures_list.append(figure)
+            self.refresh_figures_to_show()
+            self.ui.figures_browser.setText(self.figures_to_show)
 
-        char_format = cursor.charFormat()
-        char_format.setBackground(self.possible_figures[self.figure_type])
-        cursor.setCharFormat(char_format)
+            char_format = cursor.charFormat()
+            char_format.setBackground(self.possible_figures[self.figure_type])
+            cursor.setCharFormat(char_format)
 
-        self.set_default_figure_fields()
-        self.ui.button_add_figure.setEnabled(False)
+            self.set_default_figure_fields()
+            self.ui.button_add_figure.setEnabled(False)
 
     def complete_task(self):
         answer_highlighted_text = self.ui.task_text.toHtml()
@@ -77,10 +78,15 @@ class answer_adding_window(QtWidgets.QDialog):
          VALUES (%s,%s,%s,%s,%s)'''
         packed_answer = pickle.dumps(answer)
         insert = (self.task_name, self.user_id, self.user_name, answer.time, packed_answer)
-        sql_stuff.insert_as_student(query_save_answer, insert)
-        self.ui.label_chosen_figure_type.setText('Отправлено')
-
-        print(answer)
+        for i in range(3):
+            try:
+                sql_stuff.insert_as_student(query_save_answer, insert)
+                self.ui.label_chosen_figure_type.setText('Отправлено')
+            except Exception as exc:
+                if i == 2:
+                    self.ui.label_chosen_figure_type.setText('Ошибка')
+                    with open(self.task_name + '.txt', 'a') as task_file:
+                        task_file.write(str(packed_answer))
 
     def set_default_figure_fields(self):
         self.figure_type = None

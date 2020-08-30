@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>309</width>
-    <height>316</height>
+    <width>310</width>
+    <height>339</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Вход</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>
@@ -75,6 +79,9 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="echoMode">
+            <enum>QLineEdit::Password</enum>
            </property>
            <property name="placeholderText">
             <string>Пароль</string>

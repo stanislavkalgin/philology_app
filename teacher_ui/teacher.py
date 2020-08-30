@@ -117,14 +117,10 @@ class AddTaskForm(QtWidgets.QDialog):
         if end - start != 0:
             self.edited_figure_key_symbols += range(start, end)  # todo переделать на end + 1 и исправить все что за этим следует
             self.edited_figure_key_symbols_text += cursor.selectedText() + " || "
-            # print(sorted(self.edited_figure_key_symbols))
             self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text)
-            char_format = cursor.charFormat()
-            char_format.setBackground(self.possible_figures[self.edited_figure_type])
-            cursor.setCharFormat(char_format)
         self.set_window_state()
 
-    def add_possible_words(self):  # todo переделать способ задания границ оборотов \\ и вот непонятно, сделано ли уже
+    def add_possible_words(self):
         cursor = self.ui.task_text.textCursor()
         start = cursor.selectionStart()
         end = cursor.selectionEnd()
@@ -145,6 +141,7 @@ class AddTaskForm(QtWidgets.QDialog):
                             key_symbols_text=self.edited_figure_key_symbols_text,
                             possible_symbols=self.edited_figure_possible_symbols,
                             possible_symbols_text=self.edited_figure_possible_symbols_text)
+        self.set_figure_color(self.edited_figure_type, self.edited_figure_key_symbols)
         self.task_figures_list.append(figure)
         self.set_default_figure_fields()
 
@@ -176,21 +173,46 @@ class AddTaskForm(QtWidgets.QDialog):
         if not self.task_name:
             self.ui.figure_info_type.setText('Название')
         else:
-            try:
-                task = Task(name=self.task_name,
-                            text=self.task_text,
-                            highlighted_text=self.highlighted_task_text,
-                            figures_list=self.task_figures_list)
-                # print(task)
-                packed_task = pickle.dumps(task)
-                query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
-                insert = (self.task_name, packed_task)
-                sql_stuff.insert_as_teacher(query_add_task, insert)
-                self.ui.figure_info_type.setText('Задание отправлено')
-                self.ui.button_add_task.setEnabled(False)
-            except Exception as exc:
-                self.ui.figure_info_type.setText('Ошибка отправки задания ')
+            task = Task(name=self.task_name,
+                        text=self.task_text,
+                        highlighted_text=self.highlighted_task_text,
+                        figures_list=self.task_figures_list)
+            packed_task = pickle.dumps(task)
+            query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
+            insert = (self.task_name, packed_task)
+            for i in range(3):
+                try:
+                    sql_stuff.insert_as_teacher(query_add_task, insert)
+                    self.ui.figure_info_type.setText('Задание отправлено')
+                    self.ui.button_add_task.setEnabled(False)
+                    break
+                except Exception as exc:
+                    if i == 2:
+                        self.ui.figure_info_type.setText('Ошибка отправки задания')
+                        with open(self.task_name + '.txt', 'a') as task_file:
+                            task_file.write(str(packed_task))
         self.set_window_state()
+
+    def set_figure_color(self, figure_type, _symbols):
+        symbols = sorted(_symbols[:])
+        symbols_to_mark = []
+        word = [symbols[0]]
+        for i in range(1, len(symbols)):
+            if symbols[i] - symbols[i-1] > 1:
+                symbols_to_mark.append(word)
+                word = []
+            word.append(symbols[i])
+        symbols_to_mark.append(word)
+        for word in symbols_to_mark:
+            start = min(word)
+            end = max(word) + 1
+            cursor = self.ui.task_text.textCursor()
+            cursor.setPosition(start)
+            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+            char_format = cursor.charFormat()
+            char_format.setBackground(self.possible_figures[figure_type])
+            cursor.setCharFormat(char_format)
+
 
 
 class CheckAnswersForm(QtWidgets.QDialog):

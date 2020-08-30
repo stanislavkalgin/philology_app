@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Точно-точно?</string>
+   <string>Подтверждение</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="2,1">
    <item>

@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>206</width>
-    <height>310</height>
+    <width>308</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Вход - студент</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -75,6 +79,9 @@
           <font>
            <pointsize>12</pointsize>
           </font>
+         </property>
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
          </property>
          <property name="placeholderText">
           <string>Пароль</string>

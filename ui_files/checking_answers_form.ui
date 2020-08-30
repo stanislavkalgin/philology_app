@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Проверка заданий</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,5">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout" stretch="1,3,1">

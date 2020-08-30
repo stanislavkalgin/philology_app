@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Текст</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Составление ответа на задание</string>
+   <string>Ответ</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../Иконки/icons8-add-book-80.png</normaloff>../../Иконки/icons8-add-book-80.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout" rowstretch="5,1" columnstretch="5,1">
    <item row="0" column="1">
