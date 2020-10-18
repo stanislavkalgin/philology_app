@@ -226,8 +226,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.task_text_windows = []
 
-        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbasemarktwo ORDER BY task_name
-        WHERE mark_del = false'''
+        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbasemarktwo 
+        WHERE mark_del = false ORDER BY task_name'''
         tasks_tup = sql_stuff.get_answer_as_teacher(query_get_task_names)
         for i in range(len(tasks_tup)):
             self.ui.list_of_tasks.addItem(tasks_tup[i][0])
