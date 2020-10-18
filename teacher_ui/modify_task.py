@@ -36,6 +36,8 @@ class ModifyTaskForm(AddTaskForm):
         self.ui.button_modify_task.clicked.connect(self.modify_task)
         self.ui.button_delete_task.clicked.connect(self.delete_task)
 
+        self.ui.task_text.cursorPositionChanged.connect(self.choose_figure_from_cursor)
+
         self.set_window_state()
 
     def set_window_state(self):
@@ -86,6 +88,12 @@ class ModifyTaskForm(AddTaskForm):
                     self.task_figures_list[self.deletion_figure_number].possible_symbols_text)
                 self.ui.figure_info_type.setText(self.task_figures_list[self.deletion_figure_number].figure_type)
                 break
+        else:
+            self.deletion_figure_number = None
+            self.figure_to_delete_is_chosen = False
+            self.ui.figure_info_key_words.setText(self.edited_figure_key_symbols_text or " ")
+            self.ui.figure_info_possible_words.setText(self.edited_figure_possible_symbols_text or " ")
+            self.ui.figure_info_type.setText(self.edited_figure_type or "Тип оборота")
         self.set_window_state()
 
     def delete_figure(self):
