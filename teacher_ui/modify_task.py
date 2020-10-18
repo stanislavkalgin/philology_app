@@ -4,13 +4,14 @@ from task_modify_form import Ui_Dialog as Ui_task_modify_form
 from teacher import AddTaskForm
 from deletion_dialog import Ui_deletion_dialog
 from PyQt5 import QtWidgets
+from datetime import datetime
 import sys
 import sql_stuff
 
 
 class ModifyTaskForm(AddTaskForm):
-    def __init__(self, task):
-        super().__init__(ui=Ui_task_modify_form)
+    def __init__(self, task, creator_id, creator_name):
+        super().__init__(ui=Ui_task_modify_form, creator_id=creator_id, creator_name=creator_name)
 
         # Здесь блок полей создаваемого задания берется из объекта
         self.task_text = task.text
@@ -109,11 +110,12 @@ class ModifyTaskForm(AddTaskForm):
                         figures_list=self.task_figures_list)
         packed_task = pickle.dumps(new_task)
         if self.task_name == new_task_name:
-            query_add_task = '''UPDATE `taskbase` SET `task_object`=%s WHERE `task_name`=%s'''
+            query_add_task = '''UPDATE `taskbasemarktwo` SET `task_object`=%s WHERE `task_name`=%s'''
             insert = (packed_task, self.task_name)
         else:
-            query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
-            insert = (new_task_name, packed_task)
+            query_add_task = '''INSERT INTO taskbasemarktwo (`task_name`, `task_object`, `creator`, `creator_name`, `creation_date`)
+             VALUES (%s,%s,%s,%s,%s)'''
+            insert = (new_task_name, packed_task, self.creator_id, self.creator_name, str(datetime.today())[:16])
         try:
             sql_stuff.insert_as_teacher(query_add_task, insert)
             self.ui.figure_info_type.setText('Задание отредактировано')
@@ -139,9 +141,15 @@ class DeletionDialog(QtWidgets.QDialog):
         self.ui.button_cancel.clicked.connect(self.cancel)
 
     def delete_task(self):
-        query_deletion = '''DELETE FROM `taskbase` WHERE task_name=%s'''
+        query_deletion_task = '''UPDATE `taskbasemarktwo` 
+        SET mark_del = true
+        WHERE task_name=%s'''
+        query_deletion_answers = """UPDATE answerbasemarktwo
+        SET mark_del = true
+        WHERE task_name=%s"""
         insert = (self.task_name, )
-        sql_stuff.insert_as_teacher(query_deletion, insert)
+        sql_stuff.insert_as_teacher(query_deletion_task, insert)
+        sql_stuff.insert_as_teacher(query_deletion_answers, insert)
         self.ui.label.setText('Удалено')
 
     def cancel(self):

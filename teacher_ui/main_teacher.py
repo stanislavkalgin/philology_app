@@ -6,6 +6,7 @@ import traceback
 from datetime import datetime
 from teacher import AddTaskForm, CheckAnswersForm
 from modify_task import ModifyTaskForm
+from global_stuff import STUDENT_RIGHTS, TEACHER_RIGHTS
 import sql_stuff
 
 # TODO хеширование отправляемых паролей
@@ -28,25 +29,34 @@ class EntranceWindow(QtWidgets.QDialog):
         self.ui.button_edit_task.clicked.connect(self.go_to_task_modification)
         self.ui.list_of_edited_tasks.itemClicked.connect(self.modify_task)
 
+        self.creator_name = None
+        self.creator_id = None
+        self.user_rights = None
+
     def check_login_password(self):
         login = self.ui.login_input.text()
         password = self.ui.password_input.text()
-        query_login_teacher = 'SELECT * FROM users WHERE rights=\'teacher\''
+        query_login_teacher = 'SELECT * FROM users'
         teachers = sql_stuff.get_answer_as_teacher(query_login_teacher)
         for i in range(len(teachers)):
             if teachers[i][1] == login and teachers[i][2] == password:
+                self.creator_name = teachers[i][3]
+                self.creator_id = teachers[i][0]
+                self.user_rights = teachers[i][4]
                 self.ui.stackedWidget.setCurrentIndex(1)
                 break
             else:
                 self.ui.label.setText('Неудача')  # todo более цивильный текст
 
     def add_task(self):
-        add_task_window = AddTaskForm()
+        add_task_window = AddTaskForm(creator_id=self.creator_id, creator_name=self.creator_name)
         add_task_window.exec()
 
     def check_tasks(self):
-        check_task_window = CheckAnswersForm()
-        check_task_window.exec()
+        if self.user_rights == TEACHER_RIGHTS:
+            check_task_window = CheckAnswersForm()
+            check_task_window.exec()
+
 
     def go_to_teacher_registration(self):
         self.ui.stackedWidget.setCurrentIndex(2)
@@ -94,18 +104,23 @@ class EntranceWindow(QtWidgets.QDialog):
 
     def go_to_task_modification(self):
         self.ui.stackedWidget.setCurrentIndex(4)
-        query_get_task_names = '''SELECT task_name FROM taskbase'''
+        if self.user_rights == TEACHER_RIGHTS:
+            query_get_task_names = '''SELECT task_name FROM taskbasemarktwo WHERE mark_del = false'''
+        else:
+            query_get_task_names = '''SELECT task_name FROM taskbasemarktwo 
+            WHERE creator = {} AND mark_del = false'''.format(self.creator_id)
         task_names_tuple = sql_stuff.get_answer_as_teacher(query_get_task_names)
         for i in task_names_tuple:
             self.ui.list_of_edited_tasks.addItem(i[0])
 
     def modify_task(self, item):
         task_name = item.text()
-        query_get_task_objects = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(task_name)
+        query_get_task_objects = '''SELECT task_object FROM taskbasemarktwo 
+        WHERE task_name=\'{}\' AND mark_del = false'''.format(task_name)
         task_tuple = sql_stuff.get_answer_as_teacher(query_get_task_objects)
         packed_task = task_tuple[0][0]
         task = pickle.loads(packed_task)
-        edit_window = ModifyTaskForm(task)
+        edit_window = ModifyTaskForm(task, creator_id=self.creator_id, creator_name=self.creator_name)
         edit_window.exec()
 
 

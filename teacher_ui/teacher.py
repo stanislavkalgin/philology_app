@@ -4,6 +4,7 @@ from task_add_form import Ui_Dialog
 from checking_answers_form import Ui_check_answers_window
 from dialog_text import Ui_Dialog as Ui_text_window  # Иначе конфликт имен, можно переделать в ui файле
 from PyQt5 import QtWidgets, QtCore, QtGui
+from datetime import datetime
 import sys
 import sql_stuff
 
@@ -11,11 +12,13 @@ import sql_stuff
 
 
 class AddTaskForm(QtWidgets.QDialog):
-    def __init__(self, parent=None, ui=Ui_Dialog):
+    def __init__(self, parent=None, ui=Ui_Dialog, creator_name=None, creator_id=None):
         super().__init__(parent)
         self.ui = ui()
         self.ui.setupUi(self)
         self.possible_figures = possible_figures.copy()
+        self.creator_name = creator_name
+        self.creator_id = creator_id
 
         keys = []
         for i in self.possible_figures.keys():
@@ -178,8 +181,9 @@ class AddTaskForm(QtWidgets.QDialog):
                         highlighted_text=self.highlighted_task_text,
                         figures_list=self.task_figures_list)
             packed_task = pickle.dumps(task)
-            query_add_task = '''INSERT INTO taskbase (`task_name`, `task_object`) VALUES (%s,%s)'''
-            insert = (self.task_name, packed_task)
+            query_add_task = '''INSERT INTO taskbasemarktwo (`task_name`, `task_object`, `creator`, `creator_name`, `creation_date`)
+             VALUES (%s,%s,%s,%s,%s)'''
+            insert = (self.task_name, packed_task, self.creator_id, self.creator_name, str(datetime.today())[:16])
             for i in range(3):
                 try:
                     sql_stuff.insert_as_teacher(query_add_task, insert)
@@ -222,7 +226,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.task_text_windows = []
 
-        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbase ORDER BY task_name'''
+        query_get_task_names = '''SELECT DISTINCT task_name FROM answerbasemarktwo ORDER BY task_name
+        WHERE mark_del = false'''
         tasks_tup = sql_stuff.get_answer_as_teacher(query_get_task_names)
         for i in range(len(tasks_tup)):
             self.ui.list_of_tasks.addItem(tasks_tup[i][0])
@@ -242,8 +247,9 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.task_folder = item.text()
         self.ui.list_of_students.clear()
 
-        query_get_student_names = '''SELECT DISTINCT student_id, student_name FROM answerbase 
-        WHERE task_name=\'{}\' ORDER BY student_name'''.format(self.task_folder)
+        query_get_student_names = '''SELECT DISTINCT student_id, student_name FROM answerbasemarktwo 
+        WHERE task_name=\'{}\' AND mark_del = false
+        ORDER BY student_name'''.format(self.task_folder)
         students_tup = sql_stuff.get_answer_as_teacher(query_get_student_names)
         # print(students_tup)
         student_strings = []
@@ -256,9 +262,9 @@ class CheckAnswersForm(QtWidgets.QDialog):
         self.student_folder = int(item.text().split()[-1])
         self.ui.list_of_answers.clear()
 
-        query_get_answer_times = '''SELECT completion_date FROM answerbase
-        WHERE task_name=\'{}\' AND student_id={} ORDER BY completion_date'''.format(self.task_folder,
-                                                                                    self.student_folder)
+        query_get_answer_times = '''SELECT completion_date FROM answerbasemarktwo
+        WHERE task_name=\'{}\' AND student_id={} AND mark_del = false 
+        ORDER BY completion_date'''.format(self.task_folder, self.student_folder)
         times_tup = sql_stuff.get_answer_as_teacher(query_get_answer_times)
 
         for i in range(len(times_tup)):
@@ -266,14 +272,14 @@ class CheckAnswersForm(QtWidgets.QDialog):
 
     def check_answer(self, item):  # todo перенести запрос задания на уровень выше для избежания повторений
         self.current_answer = item.text()
-        query_get_answer = '''SELECT answer_object FROM answerbase WHERE task_name=\'{}\' AND student_id={} 
-        AND completion_date=\'{}\''''.format(self.task_folder, self.student_folder, self.current_answer)
+        query_get_answer = '''SELECT answer_object FROM answerbasemarktwo WHERE task_name=\'{}\' AND student_id={} 
+        AND completion_date=\'{}\' AND mark_del = false'''.format(self.task_folder, self.student_folder, self.current_answer)
         answer_tup = sql_stuff.get_answer_as_teacher(query_get_answer)
         packed_answer = answer_tup[0][0]
         answer = pickle.loads(packed_answer)
         self.current_answer_highlighted_text = answer.highlighted_text
 
-        query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
+        query_get_task = '''SELECT task_object FROM taskbasemarktwo WHERE task_name=\'{}\' AND mark_del = false'''.format(self.task_folder)
         task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
         packed_task = task_tup[0][0]
         task = pickle.loads(packed_task)
@@ -303,7 +309,8 @@ class CheckAnswersForm(QtWidgets.QDialog):
     def show_task_text(self):
         if not self.current_answer:
             return
-        query_get_task = '''SELECT task_object FROM taskbase WHERE task_name=\'{}\''''.format(self.task_folder)
+        query_get_task = '''SELECT task_object FROM taskbasemarktwo 
+        WHERE task_name=\'{}\' AND mark_del = false'''.format(self.task_folder)
         task_tup = sql_stuff.get_answer_as_teacher(query_get_task)
         packed_task = task_tup[0][0]
         task = pickle.loads(packed_task)

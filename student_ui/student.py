@@ -29,7 +29,7 @@ class answer_adding_window(QtWidgets.QDialog):
         self.figures_to_show = ''
         self.figures_list = []
 
-        query_get_task = '''SELECT * FROM taskbase WHERE task_name=\'{}\''''.format(self.task_name)
+        query_get_task = '''SELECT * FROM taskbasemarktwo WHERE mark_del = false AND task_name=\'{}\''''.format(self.task_name)
         selected_task = sql_stuff.get_answer_as_student(query_get_task)
         packed_task = selected_task[0][1]
         task = pickle.loads(packed_task)
@@ -73,7 +73,7 @@ class answer_adding_window(QtWidgets.QDialog):
     def complete_task(self):
         answer_highlighted_text = self.ui.task_text.toHtml()
         answer = Answer(self.user_id, self.task_name, self.figures_list, answer_highlighted_text)
-        query_save_answer = '''INSERT INTO answerbase
+        query_save_answer = '''INSERT INTO answerbasemarktwo
         (`task_name`, `student_id`, `student_name`, `completion_date`, `answer_object`)
          VALUES (%s,%s,%s,%s,%s)'''
         packed_answer = pickle.dumps(answer)

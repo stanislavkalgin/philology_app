@@ -10,6 +10,9 @@ possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt
                     'Эллипс': QtCore.Qt.red, 'Многосоюзие': QtCore.Qt.blue, 'Графон': QtCore.Qt.green,
                     'Риторический вопрос': QtCore.Qt.red, 'Гипербола': QtCore.Qt.blue, 'Инверсия': QtCore.Qt.green}
 
+STUDENT_RIGHTS = 'student'
+TEACHER_RIGHTS = 'teacher'
+
 
 class TaskFigure:
     global possible_figures
