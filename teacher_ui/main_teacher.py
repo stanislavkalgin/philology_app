@@ -59,7 +59,8 @@ class EntranceWindow(QtWidgets.QDialog):
 
 
     def go_to_teacher_registration(self):
-        self.ui.stackedWidget.setCurrentIndex(2)
+        if self.user_rights == TEACHER_RIGHTS:
+            self.ui.stackedWidget.setCurrentIndex(2)
 
     def go_to_student_registration(self):
         self.ui.stackedWidget.setCurrentIndex(3)
