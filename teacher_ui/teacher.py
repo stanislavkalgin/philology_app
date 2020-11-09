@@ -192,7 +192,7 @@ class AddTaskForm(QtWidgets.QDialog):
                     break
                 except Exception as exc:
                     if i == 2:
-                        self.ui.figure_info_type.setText('Ошибка отправки задания')
+                        self.ui.figure_info_type.setText('Ошибка отправки. Не уникальное имя?')
                         with open(self.task_name + '.txt', 'a') as task_file:
                             task_file.write(str(packed_task))
         self.set_window_state()
