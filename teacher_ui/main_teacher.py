@@ -28,6 +28,9 @@ class EntranceWindow(QtWidgets.QDialog):
         self.ui.reg_student_button_register.clicked.connect(self.register_student)
         self.ui.button_edit_task.clicked.connect(self.go_to_task_modification)
         self.ui.list_of_edited_tasks.itemClicked.connect(self.modify_task)
+        self.ui.button_back_choice_of_edited.clicked.connect(self.go_to_menu)
+        self.ui.button_back_teacher_reg.clicked.connect(self.go_to_menu)
+        self.ui.button_back_student_reg.clicked.connect(self.go_to_entrance)
 
         self.creator_name = None
         self.creator_id = None
@@ -111,6 +114,7 @@ class EntranceWindow(QtWidgets.QDialog):
             query_get_task_names = '''SELECT task_name FROM taskbasemarktwo 
             WHERE creator = {} AND mark_del = false'''.format(self.creator_id)
         task_names_tuple = sql_stuff.get_answer_as_teacher(query_get_task_names)
+        self.ui.list_of_edited_tasks.clear()
         for i in task_names_tuple:
             self.ui.list_of_edited_tasks.addItem(i[0])
 
@@ -124,6 +128,11 @@ class EntranceWindow(QtWidgets.QDialog):
         edit_window = ModifyTaskForm(task, creator_id=self.creator_id, creator_name=self.creator_name)
         edit_window.exec()
 
+    def go_to_menu(self):
+        self.ui.stackedWidget.setCurrentIndex(1)
+
+    def go_to_entrance(self):
+        self.ui.stackedWidget.setCurrentIndex(0)
 
 def excepthook(exc_type, exc_value, exc_tb):
     tb = str(datetime.now()) + "".join(traceback.format_exception(exc_type, exc_value, exc_tb)) + "\n"
