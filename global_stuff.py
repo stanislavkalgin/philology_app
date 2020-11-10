@@ -8,7 +8,10 @@ possible_figures = {'Метафора': QtCore.Qt.red, 'Эпитет': QtCore.Qt
                     'Игра слов': QtCore.Qt.red, 'Антитеза': QtCore.Qt.blue, 'Аллюзия': QtCore.Qt.green,
                     'Метонимия': QtCore.Qt.red, 'Параллелизм': QtCore.Qt.blue, 'Ономатопея': QtCore.Qt.green,
                     'Эллипс': QtCore.Qt.red, 'Многосоюзие': QtCore.Qt.blue, 'Графон': QtCore.Qt.green,
-                    'Риторический вопрос': QtCore.Qt.red, 'Гипербола': QtCore.Qt.blue, 'Инверсия': QtCore.Qt.green}
+                    'Риторический вопрос': QtCore.Qt.red, 'Гипербола': QtCore.Qt.blue, 'Инверсия': QtCore.Qt.green,
+                    'Синекдоха': QtCore.Qt.red, 'Ирония': QtCore.Qt.blue, 'Зевгма': QtCore.Qt.green,
+                    'Оксюморон': QtCore.Qt.red, 'Антономасия': QtCore.Qt.blue, 'Литота': QtCore.Qt.green,
+                    'Перефраз': QtCore.Qt.red}
 
 STUDENT_RIGHTS = 'student'
 TEACHER_RIGHTS = 'teacher'
